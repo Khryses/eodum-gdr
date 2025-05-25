@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { Routes, Route } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import RegisterModal from './components/RegisterModal';
 import DocumentationModal from './components/DocumentationModal';
 import LoginModal from './components/LoginModal';
 import Navbar from './components/Navbar';
+import Land from './pages/Land';
 
 function App() {
   const [modals, setModals] = useState({
@@ -75,77 +77,85 @@ function App() {
   };
 
   return (
-    <div className="h-screen w-screen bg-gray-950 text-white overflow-hidden relative flex flex-col">
-      <Navbar 
-        onOpenDocumenti={() => setModals((prev) => ({ 
-          ...prev, 
-          documentation: { ...prev.documentation, visible: true } 
-        }))} 
+    <Routes>
+      <Route
+        path="/"
+        element={
+          <div className="h-screen w-screen bg-gray-950 text-white overflow-hidden relative flex flex-col">
+            <Navbar 
+              onOpenDocumenti={() => setModals((prev) => ({ 
+                ...prev, 
+                documentation: { ...prev.documentation, visible: true } 
+              }))} 
+            />
+
+            <div className="flex-1">
+              <HomePage
+                onOpenRegister={() => setModals((prev) => ({ ...prev, register: { ...prev.register, visible: true } }))}
+                onOpenLogin={() => setModals((prev) => ({ ...prev, login: { ...prev.login, visible: true } }))}
+                bringModalsBehind={bringModalsBehind}
+              />
+            </div>
+
+            {modals.register.visible && (
+              <RegisterModal
+                position={modals.register.position}
+                isDragging={drag.active}
+                dragOffset={drag.offset}
+                setIsDragging={(key) => setDrag((d) => ({ ...d, active: key }))}
+                setDragOffset={(offset) => setDrag((d) => ({ ...d, offset }))}
+                zIndex={zIndexes.register}
+                onFocus={() => handleFocus('register')}
+                onClose={() =>
+                  setModals((prev) => ({
+                    ...prev,
+                    register: { ...prev.register, visible: false }
+                  }))
+                }
+                onOpenDocumentation={openDocumentation}
+              />
+            )}
+
+            {modals.documentation.visible && (
+              <DocumentationModal
+                position={modals.documentation.position}
+                isDragging={drag.active}
+                dragOffset={drag.offset}
+                setIsDragging={(key) => setDrag((d) => ({ ...d, active: key }))}
+                setDragOffset={(offset) => setDrag((d) => ({ ...d, offset }))}
+                zIndex={zIndexes.documentation}
+                onFocus={() => handleFocus('documentation')}
+                onClose={() =>
+                  setModals((prev) => ({
+                    ...prev,
+                    documentation: { ...prev.documentation, visible: false }
+                  }))
+                }
+              />
+            )}
+
+            {modals.login.visible && (
+              <LoginModal
+                position={modals.login.position}
+                isDragging={drag.active}
+                dragOffset={drag.offset}
+                setIsDragging={(key) => setDrag((d) => ({ ...d, active: key }))}
+                setDragOffset={(offset) => setDrag((d) => ({ ...d, offset }))}
+                zIndex={zIndexes.login}
+                onFocus={() => handleFocus('login')}
+                onClose={() =>
+                  setModals((prev) => ({
+                    ...prev,
+                    login: { ...prev.login, visible: false }
+                  }))
+                }
+              />
+            )}
+          </div>
+        }
       />
-      
-      <div className="flex-1">
-        <HomePage
-          onOpenRegister={() => setModals((prev) => ({ ...prev, register: { ...prev.register, visible: true } }))}
-          onOpenLogin={() => setModals((prev) => ({ ...prev, login: { ...prev.login, visible: true } }))}
-          bringModalsBehind={bringModalsBehind}
-        />
-      </div>
-
-      {modals.register.visible && (
-        <RegisterModal
-          position={modals.register.position}
-          isDragging={drag.active}
-          dragOffset={drag.offset}
-          setIsDragging={(key) => setDrag((d) => ({ ...d, active: key }))}
-          setDragOffset={(offset) => setDrag((d) => ({ ...d, offset }))}
-          zIndex={zIndexes.register}
-          onFocus={() => handleFocus('register')}
-          onClose={() =>
-            setModals((prev) => ({
-              ...prev,
-              register: { ...prev.register, visible: false }
-            }))
-          }
-          onOpenDocumentation={openDocumentation}
-        />
-      )}
-
-      {modals.documentation.visible && (
-        <DocumentationModal
-          position={modals.documentation.position}
-          isDragging={drag.active}
-          dragOffset={drag.offset}
-          setIsDragging={(key) => setDrag((d) => ({ ...d, active: key }))}
-          setDragOffset={(offset) => setDrag((d) => ({ ...d, offset }))}
-          zIndex={zIndexes.documentation}
-          onFocus={() => handleFocus('documentation')}
-          onClose={() =>
-            setModals((prev) => ({
-              ...prev,
-              documentation: { ...prev.documentation, visible: false }
-            }))
-          }
-        />
-      )}
-
-      {modals.login.visible && (
-        <LoginModal
-          position={modals.login.position}
-          isDragging={drag.active}
-          dragOffset={drag.offset}
-          setIsDragging={(key) => setDrag((d) => ({ ...d, active: key }))}
-          setDragOffset={(offset) => setDrag((d) => ({ ...d, offset }))}
-          zIndex={zIndexes.login}
-          onFocus={() => handleFocus('login')}
-          onClose={() =>
-            setModals((prev) => ({
-              ...prev,
-              login: { ...prev.login, visible: false }
-            }))
-          }
-        />
-      )}
-    </div>
+      <Route path="/land" element={<Land />} />
+    </Routes>
   );
 }
 

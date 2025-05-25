@@ -1,4 +1,3 @@
-
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -11,11 +10,13 @@ app.use(express.json());
 const authRoutes = require('./routes/authRoutes');
 const db = require('./models');
 
-db.sequelize.sync().then(() => {
+// 🔧 Forziamo Sequelize a creare/modificare le tabelle in base ai modelli
+db.sequelize.sync({ alter: true }).then(() => {
   console.log('Database sincronizzato con successo.');
 }).catch((err) => {
   console.error('Errore nella sincronizzazione del database:', err);
 });
+
 app.use('/api/auth', authRoutes);
 
 app.listen(PORT, () => {

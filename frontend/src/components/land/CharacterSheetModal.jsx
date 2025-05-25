@@ -1,0 +1,1 @@
+export default function CharacterSheetModal() { return <div>Modale scheda</div>; }
