@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import HomePage from './pages/HomePage';
 import RegisterModal from './components/RegisterModal';
 import DocumentationModal from './components/DocumentationModal';
 import LoginModal from './components/LoginModal';
+import Navbar from './components/Navbar';
 
 function App() {
   const [modals, setModals] = useState({
@@ -21,6 +22,37 @@ function App() {
     active: null,
     offset: { x: 0, y: 0 }
   });
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (drag.active) {
+        setModals(prev => ({
+          ...prev,
+          [drag.active]: {
+            ...prev[drag.active],
+            position: {
+              x: e.clientX - drag.offset.x,
+              y: e.clientY - drag.offset.y
+            }
+          }
+        }));
+      }
+    };
+
+    const handleMouseUp = () => {
+      setDrag({ active: null, offset: { x: 0, y: 0 } });
+    };
+
+    if (drag.active) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [drag]);
 
   const handleFocus = (modalKey) => {
     const maxZ = Math.max(...Object.values(zIndexes));
@@ -43,12 +75,21 @@ function App() {
   };
 
   return (
-    <div className="h-screen w-screen bg-gray-950 text-white overflow-hidden relative">
-      <HomePage
-        onOpenRegister={() => setModals((prev) => ({ ...prev, register: { ...prev.register, visible: true } }))}
-        onOpenLogin={() => setModals((prev) => ({ ...prev, login: { ...prev.login, visible: true } }))}
-        bringModalsBehind={bringModalsBehind}
+    <div className="h-screen w-screen bg-gray-950 text-white overflow-hidden relative flex flex-col">
+      <Navbar 
+        onOpenDocumenti={() => setModals((prev) => ({ 
+          ...prev, 
+          documentation: { ...prev.documentation, visible: true } 
+        }))} 
       />
+      
+      <div className="flex-1">
+        <HomePage
+          onOpenRegister={() => setModals((prev) => ({ ...prev, register: { ...prev.register, visible: true } }))}
+          onOpenLogin={() => setModals((prev) => ({ ...prev, login: { ...prev.login, visible: true } }))}
+          bringModalsBehind={bringModalsBehind}
+        />
+      </div>
 
       {modals.register.visible && (
         <RegisterModal
