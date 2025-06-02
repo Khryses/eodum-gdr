@@ -7,7 +7,7 @@ import DocumentationModal from '../components/DocumentationModal';
 import CharacterSheetModal from '../components/land/CharacterSheetModal';
 import AllPresentModal from '../components/land/AllPresentModal';
 import LogoutWarningModal from '../components/land/LogoutWarningModal';
-import { X } from 'lucide-react';
+import ManagementModal from '../components/land/ManagementModal';
 import { useUser } from '../context/UserContext';
 import { useGameNotifications } from '../components/NotificationSystem';
 import { getLogoutPenaltyTime, setLogoutPenalty, formatTime } from '../utils/gameUtils';
@@ -23,12 +23,17 @@ export default function Land() {
   const [showSheet, setShowSheet] = useState(false);
   const [showAllPresent, setShowAllPresent] = useState(false);
   const [showLogoutWarning, setShowLogoutWarning] = useState(false);
+  const [showManagement, setShowManagement] = useState(false);
+  
+  // Stato per il refresh
+  const [lastRefresh, setLastRefresh] = useState(Date.now());
   
   // Posizioni modali
   const [documentationPosition, setDocumentationPosition] = useState({ x: 150, y: 150 });
   const [sheetPosition, setSheetPosition] = useState({ x: 250, y: 200 });
   const [allPresentPosition, setAllPresentPosition] = useState({ x: 300, y: 100 });
   const [logoutWarningPosition, setLogoutWarningPosition] = useState({ x: 200, y: 150 });
+  const [managementPosition, setManagementPosition] = useState({ x: 100, y: 50 });
   
   // Stati per il dragging
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -49,6 +54,15 @@ export default function Land() {
     };
 
     setUserOnlineInLand();
+  }, []);
+
+  // Auto-refresh ogni minuto
+  useEffect(() => {
+    const autoRefresh = setInterval(() => {
+      handleRefresh();
+    }, 60000); // 60 secondi
+
+    return () => clearInterval(autoRefresh);
   }, []);
 
   // Controlla se c'è una penalità di logout forzato all'avvio
@@ -77,6 +91,22 @@ export default function Land() {
     }
     return () => clearInterval(interval);
   }, [countdown]);
+
+  // Funzione di refresh manuale
+  const handleRefresh = async () => {
+    try {
+      // Aggiorna lo stato online
+      await api.post('/presenze/online');
+      setLastRefresh(Date.now());
+      console.log('🔄 Land aggiornata:', new Date().toLocaleTimeString());
+      
+      // Notifica all'utente
+      connectionRestored();
+    } catch (error) {
+      console.error('❌ Errore durante il refresh:', error);
+      connectionLost();
+    }
+  };
 
   // Logout normale (permette di riloggare subito)
   const handleNormalLogout = async () => {
@@ -130,7 +160,7 @@ export default function Land() {
 
   return (
     <div className="h-screen bg-gray-950 text-cyan-300 font-mono overflow-hidden relative">
-      {/* Topbar */}
+      {/* Topbar - Rimossa la X */}
       <div className="h-12 bg-gray-900/90 border-b border-cyan-600/50 flex items-center justify-between px-4 backdrop-blur-sm">
         <div className="text-cyan-300 font-bold text-lg tracking-wider">
           <span className="text-blue-400">E</span>ODUM <span className="text-cyan-600 text-sm ml-2">v2.1</span>
@@ -146,14 +176,10 @@ export default function Land() {
             Admin
           </button>
           
-          {/* X per logout forzato */}
-          <button 
-            onClick={handleForceLogout}
-            className="w-8 h-8 bg-red-900/50 border border-red-600/50 rounded text-red-400 hover:bg-red-800/50 transition-colors flex items-center justify-center"
-            title="Chiudi forzatamente (3 min di penalità)"
-          >
-            <X size={16} />
-          </button>
+          {/* Indicatore ultimo refresh */}
+          <div className="text-xs text-cyan-500">
+            Ultimo aggiornamento: {new Date(lastRefresh).toLocaleTimeString()}
+          </div>
         </div>
       </div>
 
@@ -162,10 +188,15 @@ export default function Land() {
         <SidebarSinistra 
           onOpenDocs={() => setShowDocumentation(true)} 
           onOpenSheet={() => setShowSheet(true)} 
+          onOpenManagement={() => setShowManagement(true)}
+          onRefresh={handleRefresh}
           onNormalLogout={handleNormalLogout}
         />
-        <ColonnaCentrale />
-        <EodumLandPage onOpenAllPresent={() => setShowAllPresent(true)} />
+        <ColonnaCentrale key={lastRefresh} />
+        <EodumLandPage 
+          onOpenAllPresent={() => setShowAllPresent(true)} 
+          refreshTrigger={lastRefresh}
+        />
       </div>
 
       {/* Modali */}
@@ -208,13 +239,27 @@ export default function Land() {
         />
       )}
 
+      {showManagement && (
+        <ManagementModal
+          onClose={() => setShowManagement(false)}
+          position={managementPosition}
+          isDragging={isDragging}
+          dragOffset={dragOffset}
+          setDragOffset={setDragOffset}
+          setIsDragging={setIsDragging}
+          zIndex={zIndex + 3}
+          onFocus={() => {}}
+          onMapUpdate={handleRefresh}
+        />
+      )}
+
       {showLogoutWarning && (
         <LogoutWarningModal
           onClose={() => setShowLogoutWarning(false)}
           position={logoutWarningPosition}
           countdown={countdown}
           formatTime={formatTime}
-          zIndex={zIndex + 3}
+          zIndex={zIndex + 4}
         />
       )}
     </div>
