@@ -1,37 +1,48 @@
 require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const PORT = process.env.PORT || 4000;
+const db = require('./models');
+const authRoutes = require('./routes/authRoutes');
+const presenzeRoutes = require('./routes/presenzeRoutes');
+const bcrypt = require('bcrypt');
 
 app.use(cors());
 app.use(express.json());
 
-const authRoutes = require('./routes/authRoutes');
-const systemRoutes = require('./routes/system');
-const db = require('./models');
-
-// 🔧 La sincronizzazione del database è gestita in models/index.js
-
 app.use('/api/auth', authRoutes);
-app.use('/api/system', systemRoutes);
+app.use('/api/presenze', presenzeRoutes);
 
-// Route di test
-app.get('/', (req, res) => {
-  res.json({ message: 'Benvenuto nel server Eodum!' });
-});
+const PORT = process.env.PORT || 4000;
 
-// Gestione errori 404
-app.use((req, res) => {
-  res.status(404).json({ error: 'Route non trovata' });
-});
-
-// Gestione errori generali
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Errore interno del server' });
-});
-
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`🚀 Server Eodum attivo su http://localhost:${PORT}`);
+
+  try {
+    await db.sequelize.sync();
+
+    const [admin, created] = await db.User.findOrCreate({
+      where: { email: 'admin@eodum.it' },
+      defaults: {
+        nome: 'Admin',
+        cognome: 'Sistema',
+        password: await bcrypt.hash('admin123', 10),
+        sesso: 'Nonbinary',
+        razza: 'Umano',
+        caratteristiche: {},
+        role: 'admin',
+        is_online: true,
+        current_location: 'Città di Eodum',
+      },
+    });
+
+    if (created) {
+      console.log('✅ Utente admin creato');
+    } else {
+      console.log('ℹ️ Utente admin già esistente');
+    }
+  } catch (err) {
+    console.error("Errore nella creazione dell'utente admin:", err);
+  }
 });

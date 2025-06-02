@@ -1,65 +1,54 @@
+
 import React, { useState, useEffect } from 'react';
 import { Map, Users, Cloud, Sun, CloudRain, Snowflake, Moon, CloudSnow } from 'lucide-react';
 import useWeather from '../../hooks/useWeather';
-import usePresenze from '../../hooks/usePresenze';
+import api from '../../api';
 
 const EodumLandPage = ({ onOpenAllPresent }) => {
   const weather = useWeather();
-  const presenze = usePresenze();
-  
-  // Separazione dei presenti per stato
   const [currentPresent, setCurrentPresent] = useState([]);
   const [entering, setEntering] = useState([]);
   const [leaving, setLeaving] = useState([]);
+  const location = "Piazza Centrale"; // da rendere dinamico in futuro
 
   useEffect(() => {
-    if (presenze && Array.isArray(presenze)) {
-      setCurrentPresent(presenze.filter(p => p.status === 'active' || !p.status));
-      setEntering(presenze.filter(p => p.status === 'entering'));
-      setLeaving(presenze.filter(p => p.status === 'leaving'));
-    } else {
-      // Dati di fallback per demo
-      setCurrentPresent([
-        { name: 'Aeliana Tempesta', status: 'active' },
-        { name: 'Kael Ombraferro', status: 'active' },
-        { name: 'Lyra Lunascura', status: 'active' }
-      ]);
-      setEntering([
-        { name: 'Darius Ventonero', status: 'entering' }
-      ]);
-      setLeaving([
-        { name: 'Mira Nebbiargento', status: 'leaving' },
-        { name: 'Theron Roccianera', status: 'leaving' }
-      ]);
-    }
-  }, [presenze]);
+    const fetchPresenze = async () => {
+      try {
+        const response = await api.get(`/presenze/presenti/${encodeURIComponent(location)}`);
+        const presenti = response.data || [];
+
+        setCurrentPresent(presenti.filter(p => p.status === 'active' || !p.status));
+        setEntering(presenti.filter(p => p.status === 'entering'));
+        setLeaving(presenti.filter(p => p.status === 'leaving'));
+      } catch (err) {
+        console.error("Errore nel recuperare le presenze:", err);
+        // fallback
+        setCurrentPresent([]);
+        setEntering([]);
+        setLeaving([]);
+      }
+    };
+
+    fetchPresenze();
+    const interval = setInterval(fetchPresenze, 5000); // aggiorna ogni 5 sec
+    return () => clearInterval(interval);
+  }, [location]);
 
   const getWeatherIcon = () => {
     if (!weather) return <Cloud className="w-5 h-5 text-gray-400" />;
-    
     const isNight = weather.isNight;
-    
     switch(weather.condition) {
-      case 'sunny': 
-        return isNight ? 
-          <Moon className="w-5 h-5 text-yellow-200" /> : 
-          <Sun className="w-5 h-5 text-yellow-400" />;
-      case 'cloudy': 
-        return <Cloud className="w-5 h-5 text-gray-400" />;
-      case 'foggy': 
-        return <Cloud className="w-5 h-5 text-gray-300" />;
-      case 'rainy': 
-        return <CloudRain className="w-5 h-5 text-blue-400" />;
-      case 'snowy': 
-        return <CloudSnow className="w-5 h-5 text-blue-200" />;
-      default: 
-        return <Cloud className="w-5 h-5 text-gray-400" />;
+      case 'sunny': return isNight ? <Moon className="w-5 h-5 text-yellow-200" /> : <Sun className="w-5 h-5 text-yellow-400" />;
+      case 'cloudy': return <Cloud className="w-5 h-5 text-gray-400" />;
+      case 'foggy': return <Cloud className="w-5 h-5 text-gray-300" />;
+      case 'rainy': return <CloudRain className="w-5 h-5 text-blue-400" />;
+      case 'snowy': return <CloudSnow className="w-5 h-5 text-blue-200" />;
+      default: return <Cloud className="w-5 h-5 text-gray-400" />;
     }
   };
 
   const getWeatherConditionText = () => {
     if (!weather) return 'Caricamento...';
-    
     const conditions = {
       'sunny': weather.isNight ? 'Sereno' : 'Soleggiato',
       'cloudy': 'Nuvoloso',
@@ -67,13 +56,11 @@ const EodumLandPage = ({ onOpenAllPresent }) => {
       'rainy': 'Piovoso',
       'snowy': 'Nevoso'
     };
-    
     return conditions[weather.condition] || 'Variabile';
   };
 
   const getMoonIcon = () => {
     if (!weather || !weather.moonPhase) return <Moon className="w-4 h-4 text-gray-400" />;
-    
     const moonIcons = {
       'new': '🌑',
       'waxing_crescent': '🌒',
@@ -84,13 +71,11 @@ const EodumLandPage = ({ onOpenAllPresent }) => {
       'last_quarter': '🌗',
       'waning_crescent': '🌘'
     };
-    
     return <span className="text-lg">{moonIcons[weather.moonPhase] || '🌙'}</span>;
   };
 
   const getMoonPhaseText = () => {
     if (!weather || !weather.moonPhase) return 'Luna';
-    
     const phaseNames = {
       'new': 'Luna Nuova',
       'waxing_crescent': 'Falce Crescente',
@@ -101,7 +86,6 @@ const EodumLandPage = ({ onOpenAllPresent }) => {
       'last_quarter': 'Ultimo Quarto',
       'waning_crescent': 'Falce Calante'
     };
-    
     return phaseNames[weather.moonPhase] || 'Luna';
   };
 
@@ -111,7 +95,7 @@ const EodumLandPage = ({ onOpenAllPresent }) => {
     <div className="w-64 bg-gray-900/70 border-l border-cyan-600/30 p-4 backdrop-blur-sm">
       <div className="mb-4">
         <h3 className="text-cyan-300 font-bold mb-2 tracking-wider">LUOGO ATTUALE</h3>
-        <p className="text-cyan-400">Piazza Centrale</p>
+        <p className="text-cyan-400">{location}</p>
         <p className="text-cyan-500 text-xs mt-1">Mappa di Eodum</p>
       </div>
 
@@ -157,8 +141,7 @@ const EodumLandPage = ({ onOpenAllPresent }) => {
 
       <div>
         <h4 className="text-cyan-300 font-bold mb-2 text-sm tracking-wider">👥 GIOCATORI PRESENTI</h4>
-        
-        {/* Presenti Attuali */}
+
         <div className="mb-3">
           <div className="text-xs text-cyan-400 mb-1 font-semibold">
             Presenti Attuali ({currentPresent.length})
@@ -178,7 +161,6 @@ const EodumLandPage = ({ onOpenAllPresent }) => {
           </div>
         </div>
 
-        {/* In Ingresso */}
         {entering.length > 0 && (
           <div className="mb-3">
             <div className="text-xs text-blue-400 mb-1 font-semibold">
@@ -195,7 +177,6 @@ const EodumLandPage = ({ onOpenAllPresent }) => {
           </div>
         )}
 
-        {/* In Uscita */}
         {leaving.length > 0 && (
           <div className="mb-3">
             <div className="text-xs text-red-400 mb-1 font-semibold">

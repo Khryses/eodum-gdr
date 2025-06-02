@@ -1,83 +1,52 @@
 const express = require('express');
 const router = express.Router();
-const fs = require('fs');
-const path = require('path');
-const { User } = require('../models');
-const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const authenticateToken = require('../middleware/authMiddleware');
+const bcrypt = require('bcrypt');
+const { User } = require('../models');
+const { generateToken } = require('../utils/jwtUtils');
 
-const bannedNamesPath = path.join(__dirname, '../data/nomi-vietati.json');
-let bannedNames = [];
-
-try {
-  const data = fs.readFileSync(bannedNamesPath, 'utf8');
-  bannedNames = JSON.parse(data).map(n => n.toLowerCase());
-} catch (err) {
-  console.error('Errore nel caricamento dei nomi vietati:', err.message);
-}
-
-router.post('/register', async (req, res) => {
-  const { nome, cognome, sesso, razza, email } = req.body;
-  const nomeCompleto = `${nome} ${cognome}`.toLowerCase();
-  if (bannedNames.includes(nomeCompleto)) {
-    return res.status(400).json({ error: 'Il nome scelto è riservato o protetto da copyright.' });
-  }
-
-  try {
-    const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) {
-      return res.status(400).json({ error: 'Email già registrata' });
-    }
-
-    const passwordGenerata = Math.random().toString(36).slice(-10);
-    const hashedPassword = await bcrypt.hash(passwordGenerata, 10);
-
-    const nuovoUtente = await User.create({
-      nome,
-      cognome,
-      sesso,
-      razza,
-      email,
-      password: hashedPassword
-    });
-
-    res.status(201).json({ message: 'Utente registrato con successo. Controlla la tua email.' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Errore nella registrazione' });
-  }
-});
-
+// Login
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const utente = await User.findOne({ where: { email } });
-    if (!utente) return res.status(401).json({ error: 'Email non trovata' });
+    const user = await User.findOne({ where: { email } });
 
-    const match = await bcrypt.compare(password, utente.password);
-    if (!match) return res.status(401).json({ error: 'Password errata' });
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({ message: 'Email o password non validi' });
+    }
 
-    const token = jwt.sign({ id: utente.id }, process.env.JWT_SECRET, { expiresIn: '24h' });
+    user.is_online = true;
+    user.current_location = "Città di Eodum";
+    await user.save();
+
+    console.log(`${user.nome} ${user.cognome} è entrato nella Città di Eodum`);
+
+    const token = generateToken(user.id);
     res.json({ token });
   } catch (error) {
-    res.status(500).json({ error: 'Errore nel login' });
+    console.error("Errore nel login:", error);
+    res.status(500).json({ message: "Errore durante il login" });
   }
 });
 
-// Nuova route protetta /me
-router.get('/me', authenticateToken, async (req, res) => {
+// Logout
+router.post('/logout', async (req, res) => {
+  const { userId } = req.body;
+
   try {
-    const user = await User.findByPk(req.userId, {
-      attributes: ['id', 'nome', 'cognome', 'email', 'razza', 'sesso', 'caratteristiche']
-    });
-    if (!user) return res.status(404).json({ error: 'Utente non trovato' });
-    res.json(user);
+    const user = await User.findByPk(userId);
+    if (user) {
+      user.is_online = false;
+      await user.save();
+      console.log(`${user.nome} ${user.cognome} è uscito dalla land`);
+    }
+    res.sendStatus(200);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Errore nel recupero dei dati' });
+    console.error("Errore durante il logout:", error);
+    res.status(500).json({ message: "Errore durante il logout" });
   }
 });
 
 module.exports = router;
+

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import api from '../api';
 import { X } from 'lucide-react';
 
 function RegisterModal({
@@ -19,6 +20,7 @@ function RegisterModal({
   const [race, setRace] = useState('');
   const [email, setEmail] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [error, setError] = useState(null);
   const [errors, setErrors] = useState({});
   const [attributes, setAttributes] = useState({
     forza: 1,
@@ -157,7 +159,31 @@ function RegisterModal({
     }
   };
 
-  return (
+  
+
+  const handleRegister = async () => {
+    try {
+      const response = await api.post('/auth/register', {
+        name,
+        surname,
+        email,
+        gender,
+        race,
+        attributes,
+      });
+      setStep(4); // registrazione completata
+    } catch (err) {
+      console.error('Errore registrazione:', err);
+      if (err.response?.status === 409) {
+        setError('Questa email è già registrata.');
+      } else {
+        setError('Errore durante la registrazione. Riprova.');
+      }
+    }
+  };
+
+
+return (
     <div
       className="fixed w-[520px] bg-gray-900 border border-cyan-700 rounded-xl shadow-2xl"
       style={{
@@ -181,7 +207,13 @@ function RegisterModal({
         </button>
       </div>
 
-      <div className="px-6 pb-6">
+      {error && (
+  <div className='bg-red-900/20 border border-red-600/50 rounded p-2 mb-4'>
+    <p className='text-red-400 text-sm'>{error}</p>
+  </div>
+)}
+
+<div className="px-6 pb-6">
         {renderPage()}
 
         <div className="mt-6 flex justify-end gap-2">

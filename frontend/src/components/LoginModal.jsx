@@ -18,9 +18,20 @@ const LoginModal = ({
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [openInPopup, setOpenInPopup] = useState(false);
+  const [openInPopup, setOpenInPopup] = useState(true);
   const [errors, setErrors] = useState({});
   const [forceLogoutPenalty, setForceLogoutPenalty] = useState(null);
+
+  // Carica email salvata se presente
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('rememberedEmail');
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+      const savedPassword = localStorage.getItem('rememberedPassword');
+      if (savedPassword) setPassword(savedPassword);
+    }
+  }, []);
   const [countdown, setCountdown] = useState(0);
   
   const navigate = useNavigate();
@@ -63,6 +74,13 @@ const LoginModal = ({
   };
 
   const handleLogin = async () => {
+    if (rememberMe) {
+      localStorage.setItem('rememberedEmail', email);
+      localStorage.setItem('rememberedPassword', password);
+    } else {
+      localStorage.removeItem('rememberedEmail');
+      localStorage.removeItem('rememberedPassword');
+    }
     // Verifica se c'è ancora una penalità attiva
     if (forceLogoutPenalty && countdown > 0) {
       setErrors({ 

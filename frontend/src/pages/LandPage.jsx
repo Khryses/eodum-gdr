@@ -1,10 +1,38 @@
 
-import React from 'react';
+import React, { useEffect, useContext } from 'react';
+import axios from 'axios';
+import { UserContext } from '../contexts/UserContext';
 
 const LandPage = () => {
+  const { user } = useContext(UserContext);
+
+  useEffect(() => {
+    const setOnline = async () => {
+      if (user && user.token) {
+        try {
+          await axios.post(
+            'http://localhost:4000/api/presenze/online',
+            {},
+            {
+              headers: {
+                Authorization: `Bearer ${user.token}`,
+              },
+            }
+          );
+          console.log('✅ Stato online aggiornato');
+        } catch (error) {
+          console.error('❌ Errore impostando online:', error);
+        }
+      }
+    };
+
+    setOnline();
+  }, [user]);
+
   return (
-    <div className="h-screen flex items-center justify-center text-cyan-300 bg-gray-950 font-mono">
-      <h1 className="text-4xl font-bold">Land di Gioco – in costruzione</h1>
+    <div>
+      {/* Contenuto della LandPage */}
+      <h1>Benvenuto nella Città di Eodum</h1>
     </div>
   );
 };
