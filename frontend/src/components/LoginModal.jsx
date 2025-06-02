@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { Eye, EyeOff, X, Mail, Lock } from 'lucide-react';
-import axios from 'axios';
+import React, { useState, useEffect } from 'react';
+import { Eye, EyeOff, X, Mail, Lock, AlertTriangle, Clock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import api from '../api';
 
 const LoginModal = ({
   onClose,
@@ -19,26 +20,102 @@ const LoginModal = ({
   const [rememberMe, setRememberMe] = useState(false);
   const [openInPopup, setOpenInPopup] = useState(false);
   const [errors, setErrors] = useState({});
+  const [forceLogoutPenalty, setForceLogoutPenalty] = useState(null);
+  const [countdown, setCountdown] = useState(0);
+  
+  const navigate = useNavigate();
+
+  // Controlla penalità logout forzato
+  useEffect(() => {
+    const forceLogoutTime = localStorage.getItem('forceLogoutTime');
+    if (forceLogoutTime && Date.now() < parseInt(forceLogoutTime)) {
+      const remainingTime = parseInt(forceLogoutTime) - Date.now();
+      setForceLogoutPenalty(true);
+      setCountdown(Math.ceil(remainingTime / 1000));
+    } else {
+      localStorage.removeItem('forceLogoutTime');
+      setForceLogoutPenalty(false);
+    }
+  }, []);
+
+  // Countdown timer
+  useEffect(() => {
+    let interval;
+    if (countdown > 0) {
+      interval = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            localStorage.removeItem('forceLogoutTime');
+            setForceLogoutPenalty(false);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [countdown]);
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const handleLogin = async () => {
+    // Verifica se c'è ancora una penalità attiva
+    if (forceLogoutPenalty && countdown > 0) {
+      setErrors({ 
+        general: `Devi attendere ancora ${formatTime(countdown)} prima di poter accedere.` 
+      });
+      return;
+    }
+
+    if (!email || !password) {
+      setErrors({ general: 'Inserisci email e password' });
+      return;
+    }
+
     try {
-      const res = await axios.post('http://localhost:4000/api/auth/login', { email, password });
-      localStorage.setItem('token', res.data.token);
-
+      const response = await api.post('/auth/login', { 
+        email, 
+        password,
+        rememberMe 
+      });
+      
+      // Salva il token
+      localStorage.setItem('token', response.data.token);
+      
+      // Se c'era una penalità, rimuovila dopo login successo
+      localStorage.removeItem('forceLogoutTime');
+      
       if (openInPopup) {
-        window.open('/land', '_blank', 'width=1000,height=800');
+        // Apri in popup
+        const popup = window.open('/land', '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+        if (popup) {
+          popup.focus();
+          onClose();
+        } else {
+          setErrors({ general: 'Impossibile aprire popup. Riprova o disabilita il blocco popup.' });
+        }
       } else {
-        alert('Login effettuato. Resta sulla homepage.');
+        // Naviga normalmente
+        navigate('/land');
+        onClose();
       }
-
-      onClose();
     } catch (err) {
-      setErrors({ email: true, password: true });
+      console.error('Errore login:', err);
+      if (err.response?.status === 401) {
+        setErrors({ general: 'Email o password non corretti' });
+      } else if (err.response?.status === 429) {
+        setErrors({ general: 'Troppi tentativi di login. Riprova più tardi.' });
+      } else {
+        setErrors({ general: 'Errore di connessione. Riprova più tardi.' });
+      }
     }
   };
 
   const handleMouseDown = (e) => {
-    // Prevent dragging when clicking on form elements
     if (e.target.closest('input, button, select, textarea')) {
       return;
     }
@@ -77,6 +154,32 @@ const LoginModal = ({
       </div>
 
       <div className="px-6 pb-6 space-y-4">
+        {/* Avviso penalità logout forzato */}
+        {forceLogoutPenalty && countdown > 0 && (
+          <div className="bg-red-900/20 border border-red-600/50 rounded-lg p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle className="w-4 h-4 text-red-400" />
+              <span className="text-red-400 font-semibold text-sm">Accesso Temporaneamente Limitato</span>
+            </div>
+            <p className="text-red-300 text-xs mb-2">
+              Hai chiuso la sessione precedente in modo non corretto.
+            </p>
+            <div className="flex items-center gap-2 bg-gray-800/50 rounded px-2 py-1">
+              <Clock className="w-3 h-3 text-red-400" />
+              <span className="text-red-400 text-sm font-mono">
+                Tempo rimanente: {formatTime(countdown)}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Errore generale */}
+        {errors.general && (
+          <div className="bg-red-900/20 border border-red-600/50 rounded p-2">
+            <p className="text-red-400 text-sm">{errors.general}</p>
+          </div>
+        )}
+
         <div>
           <label className="text-sm text-cyan-300 block mb-1">Email</label>
           <div className="relative">
@@ -88,12 +191,13 @@ const LoginModal = ({
               }`}
               placeholder="inserisci@email.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setErrors(prev => ({ ...prev, email: false, general: null }));
+              }}
+              disabled={forceLogoutPenalty && countdown > 0}
             />
           </div>
-          {errors.email && (
-            <p className="text-red-400 text-xs mt-1">Email non valida</p>
-          )}
         </div>
 
         <div>
@@ -107,19 +211,22 @@ const LoginModal = ({
               }`}
               placeholder="••••••••"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setErrors(prev => ({ ...prev, password: false, general: null }));
+              }}
+              onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+              disabled={forceLogoutPenalty && countdown > 0}
             />
             <button
               type="button"
               className="absolute right-3 top-1/2 -translate-y-1/2 text-cyan-400 hover:text-cyan-300 transition-colors"
               onClick={() => setShowPassword(!showPassword)}
+              disabled={forceLogoutPenalty && countdown > 0}
             >
               {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
             </button>
           </div>
-          {errors.password && (
-            <p className="text-red-400 text-xs mt-1">Password non corretta</p>
-          )}
         </div>
 
         <div className="flex items-center justify-between text-xs text-cyan-300">
@@ -129,6 +236,7 @@ const LoginModal = ({
               checked={rememberMe}
               onChange={() => setRememberMe(!rememberMe)}
               className="rounded"
+              disabled={forceLogoutPenalty && countdown > 0}
             />
             Ricordami
           </label>
@@ -138,6 +246,7 @@ const LoginModal = ({
               checked={openInPopup}
               onChange={() => setOpenInPopup(!openInPopup)}
               className="rounded"
+              disabled={forceLogoutPenalty && countdown > 0}
             />
             Apri in popup
           </label>
@@ -145,19 +254,26 @@ const LoginModal = ({
 
         <button
           onClick={handleLogin}
-          className="w-full mt-4 bg-cyan-600 hover:bg-cyan-500 text-black font-semibold py-2 rounded transition-colors"
+          disabled={forceLogoutPenalty && countdown > 0}
+          className={`w-full mt-4 font-semibold py-2 rounded transition-colors ${
+            forceLogoutPenalty && countdown > 0
+              ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+              : 'bg-cyan-600 hover:bg-cyan-500 text-black'
+          }`}
         >
-          Accedi
+          {forceLogoutPenalty && countdown > 0 ? 'Accesso Bloccato' : 'Accedi'}
         </button>
 
-        <div className="text-center mt-3">
-          <button
-            onClick={onOpenForgotPassword}
-            className="text-cyan-400 hover:text-cyan-300 text-sm underline transition-colors"
-          >
-            Password dimenticata?
-          </button>
-        </div>
+        {(!forceLogoutPenalty || countdown <= 0) && (
+          <div className="text-center mt-3">
+            <button
+              onClick={onOpenForgotPassword}
+              className="text-cyan-400 hover:text-cyan-300 text-sm underline transition-colors"
+            >
+              Password dimenticata?
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -8,17 +8,30 @@ app.use(cors());
 app.use(express.json());
 
 const authRoutes = require('./routes/authRoutes');
+const systemRoutes = require('./routes/system');
 const db = require('./models');
 
-// 🔧 Forziamo Sequelize a creare/modificare le tabelle in base ai modelli
-db.sequelize.sync({ alter: true }).then(() => {
-  console.log('Database sincronizzato con successo.');
-}).catch((err) => {
-  console.error('Errore nella sincronizzazione del database:', err);
-});
+// 🔧 La sincronizzazione del database è gestita in models/index.js
 
 app.use('/api/auth', authRoutes);
+app.use('/api/system', systemRoutes);
+
+// Route di test
+app.get('/', (req, res) => {
+  res.json({ message: 'Benvenuto nel server Eodum!' });
+});
+
+// Gestione errori 404
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route non trovata' });
+});
+
+// Gestione errori generali
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Errore interno del server' });
+});
 
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server Eodum attivo su http://localhost:${PORT}`);
 });

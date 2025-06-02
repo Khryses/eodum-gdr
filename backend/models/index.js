@@ -1,4 +1,3 @@
-
 const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = new Sequelize(
   process.env.DB_NAME,
@@ -7,7 +6,8 @@ const sequelize = new Sequelize(
   {
     host: process.env.DB_HOST,
     dialect: 'postgres',
-    port: process.env.DB_PORT
+    port: process.env.DB_PORT,
+    logging: false // Opzionale: disabilita i log SQL
   }
 );
 
@@ -18,19 +18,27 @@ db.User = require('./user')(sequelize, DataTypes);
 
 module.exports = db;
 
-
 // Seeder automatico per utente admin
 const bcrypt = require('bcrypt');
 (async () => {
-  const existing = await db.User.findOne({ where: { email: 'admin@eodum.it' } });
-  if (!existing) {
-    const hashed = await bcrypt.hash('admin123', 10);
-    await db.User.create({
-      name: 'Admin',
-      email: 'admin@eodum.it',
-      password: hashed,
-      role: 'admin'
-    });
-    console.log('✅ Utente admin creato: admin@eodum.it / admin123');
+  try {
+    await db.sequelize.sync({ alter: true });
+    
+    const existing = await db.User.findOne({ where: { email: 'admin@eodum.it' } });
+    if (!existing) {
+      const hashed = await bcrypt.hash('admin123', 10);
+      await db.User.create({
+        nome: 'Admin',
+        cognome: 'Sistema',
+        email: 'admin@eodum.it',
+        password: hashed,
+        sesso: 'altro',
+        razza: 'admin',
+        role: 'admin'
+      });
+      console.log('✅ Utente admin creato: admin@eodum.it / admin123');
+    }
+  } catch (error) {
+    console.error('Errore nella creazione dell\'utente admin:', error);
   }
 })();

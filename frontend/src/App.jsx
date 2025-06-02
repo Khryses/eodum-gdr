@@ -4,20 +4,24 @@ import HomePage from './pages/HomePage';
 import RegisterModal from './components/RegisterModal';
 import DocumentationModal from './components/DocumentationModal';
 import LoginModal from './components/LoginModal';
+import ForgotPasswordModal from './components/ForgotPasswordModal';
 import Navbar from './components/Navbar';
 import Land from './pages/Land';
+import PrivateRoute from './components/PrivateRoute';
 
 function App() {
   const [modals, setModals] = useState({
     register: { visible: false, position: { x: 100, y: 100 } },
     documentation: { visible: false, position: { x: 150, y: 150 } },
-    login: { visible: false, position: { x: 200, y: 120 } }
+    login: { visible: false, position: { x: 200, y: 120 } },
+    forgotPassword: { visible: false, position: { x: 250, y: 140 } }
   });
 
   const [zIndexes, setZIndexes] = useState({
     register: 10,
     documentation: 9,
-    login: 8
+    login: 8,
+    forgotPassword: 11
   });
 
   const [drag, setDrag] = useState({
@@ -76,6 +80,20 @@ function App() {
     document.activeElement.blur();
   };
 
+  const closeModal = (modalName) => {
+    setModals(prev => ({
+      ...prev,
+      [modalName]: { ...prev[modalName], visible: false }
+    }));
+  };
+
+  const openModal = (modalName) => {
+    setModals(prev => ({
+      ...prev,
+      [modalName]: { ...prev[modalName], visible: true }
+    }));
+  };
+
   return (
     <Routes>
       <Route
@@ -83,20 +101,18 @@ function App() {
         element={
           <div className="h-screen w-screen bg-gray-950 text-white overflow-hidden relative flex flex-col">
             <Navbar 
-              onOpenDocumenti={() => setModals((prev) => ({ 
-                ...prev, 
-                documentation: { ...prev.documentation, visible: true } 
-              }))} 
+              onOpenDocumenti={() => openModal('documentation')} 
             />
 
             <div className="flex-1">
               <HomePage
-                onOpenRegister={() => setModals((prev) => ({ ...prev, register: { ...prev.register, visible: true } }))}
-                onOpenLogin={() => setModals((prev) => ({ ...prev, login: { ...prev.login, visible: true } }))}
+                onOpenRegister={() => openModal('register')}
+                onOpenLogin={() => openModal('login')}
                 bringModalsBehind={bringModalsBehind}
               />
             </div>
 
+            {/* Modal Registrazione */}
             {modals.register.visible && (
               <RegisterModal
                 position={modals.register.position}
@@ -106,16 +122,12 @@ function App() {
                 setDragOffset={(offset) => setDrag((d) => ({ ...d, offset }))}
                 zIndex={zIndexes.register}
                 onFocus={() => handleFocus('register')}
-                onClose={() =>
-                  setModals((prev) => ({
-                    ...prev,
-                    register: { ...prev.register, visible: false }
-                  }))
-                }
+                onClose={() => closeModal('register')}
                 onOpenDocumentation={openDocumentation}
               />
             )}
 
+            {/* Modal Documentazione */}
             {modals.documentation.visible && (
               <DocumentationModal
                 position={modals.documentation.position}
@@ -125,15 +137,11 @@ function App() {
                 setDragOffset={(offset) => setDrag((d) => ({ ...d, offset }))}
                 zIndex={zIndexes.documentation}
                 onFocus={() => handleFocus('documentation')}
-                onClose={() =>
-                  setModals((prev) => ({
-                    ...prev,
-                    documentation: { ...prev.documentation, visible: false }
-                  }))
-                }
+                onClose={() => closeModal('documentation')}
               />
             )}
 
+            {/* Modal Login */}
             {modals.login.visible && (
               <LoginModal
                 position={modals.login.position}
@@ -143,18 +151,40 @@ function App() {
                 setDragOffset={(offset) => setDrag((d) => ({ ...d, offset }))}
                 zIndex={zIndexes.login}
                 onFocus={() => handleFocus('login')}
-                onClose={() =>
-                  setModals((prev) => ({
-                    ...prev,
-                    login: { ...prev.login, visible: false }
-                  }))
-                }
+                onClose={() => closeModal('login')}
+                onOpenForgotPassword={() => {
+                  closeModal('login');
+                  openModal('forgotPassword');
+                }}
+              />
+            )}
+
+            {/* Modal Password Dimenticata */}
+            {modals.forgotPassword.visible && (
+              <ForgotPasswordModal
+                position={modals.forgotPassword.position}
+                isDragging={drag.active}
+                dragOffset={drag.offset}
+                setIsDragging={(key) => setDrag((d) => ({ ...d, active: key }))}
+                setDragOffset={(offset) => setDrag((d) => ({ ...d, offset }))}
+                zIndex={zIndexes.forgotPassword}
+                onFocus={() => handleFocus('forgotPassword')}
+                onClose={() => closeModal('forgotPassword')}
               />
             )}
           </div>
         }
       />
-      <Route path="/land" element={<Land />} />
+      
+      {/* Rotta protetta per la Land */}
+      <Route 
+        path="/land" 
+        element={
+          <PrivateRoute>
+            <Land />
+          </PrivateRoute>
+        } 
+      />
     </Routes>
   );
 }
