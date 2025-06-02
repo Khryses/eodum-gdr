@@ -6,6 +6,7 @@ const app = express();
 const db = require('./models');
 const authRoutes = require('./routes/authRoutes');
 const presenzeRoutes = require('./routes/presenzeRoutes');
+const playerRoutes = require('./routes/playerRoutes');
 const bcrypt = require('bcrypt');
 
 app.use(cors());
@@ -13,6 +14,7 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/presenze', presenzeRoutes);
+app.use('/api/player', playerRoutes);
 
 const PORT = process.env.PORT || 4000;
 
@@ -33,7 +35,7 @@ app.listen(PORT, async () => {
         caratteristiche: {},
         role: 'admin',
         is_online: true,
-        current_location: 'Città di Eodum',
+        current_location: 'Piazza Centrale',
       },
     });
 

@@ -37,6 +37,20 @@ export default function Land() {
   
   const zIndex = 50;
 
+  // Imposta l'utente come online quando entra nella Land
+  useEffect(() => {
+    const setUserOnlineInLand = async () => {
+      try {
+        await api.post('/presenze/online');
+        console.log('✅ Utente impostato come online nella Land');
+      } catch (error) {
+        console.error('❌ Errore nell\'impostare l\'utente online:', error);
+      }
+    };
+
+    setUserOnlineInLand();
+  }, []);
+
   // Controlla se c'è una penalità di logout forzato all'avvio
   useEffect(() => {
     const penaltyTime = getLogoutPenaltyTime();
@@ -68,6 +82,9 @@ export default function Land() {
   const handleNormalLogout = async () => {
     if (confirm('Sei sicuro di voler uscire dalla Land?')) {
       try {
+        // Imposta come offline
+        await api.post('/presenze/offline');
+        // Effettua logout
         await api.post('/auth/logout', { type: 'normal' });
         logout();
       } catch (error) {
@@ -83,6 +100,7 @@ export default function Land() {
   // Logout forzato (penalità di 3 minuti)
   const handleForceLogout = async () => {
     try {
+      await api.post('/presenze/offline');
       await api.post('/auth/logout', { type: 'forced' });
       setLogoutPenalty(3);
       logout();

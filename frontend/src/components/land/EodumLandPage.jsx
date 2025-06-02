@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Map, Users, Cloud, Sun, CloudRain, Snowflake, Moon, CloudSnow } from 'lucide-react';
 import useWeather from '../../hooks/useWeather';
@@ -17,15 +16,38 @@ const EodumLandPage = ({ onOpenAllPresent }) => {
         const response = await api.get(`/presenze/presenti/${encodeURIComponent(location)}`);
         const presenti = response.data || [];
 
+        // La struttura dati ora dovrebbe essere già corretta dal backend
         setCurrentPresent(presenti.filter(p => p.status === 'active' || !p.status));
         setEntering(presenti.filter(p => p.status === 'entering'));
         setLeaving(presenti.filter(p => p.status === 'leaving'));
+        
+        console.log('📍 Presenti aggiornati:', {
+          active: presenti.filter(p => p.status === 'active' || !p.status).length,
+          entering: presenti.filter(p => p.status === 'entering').length,
+          leaving: presenti.filter(p => p.status === 'leaving').length
+        });
       } catch (err) {
         console.error("Errore nel recuperare le presenze:", err);
-        // fallback
-        setCurrentPresent([]);
-        setEntering([]);
-        setLeaving([]);
+        // Prova a recuperare tutte le presenze se l'endpoint specifico fallisce
+        try {
+          const fallbackResponse = await api.get('/presenze/presenti');
+          const tuttiPresenti = fallbackResponse.data || [];
+          
+          // Filtra per location corrente
+          const presentiQui = tuttiPresenti.filter(p => p.location === location);
+          
+          setCurrentPresent(presentiQui.filter(p => p.status === 'active' || !p.status));
+          setEntering(presentiQui.filter(p => p.status === 'entering'));
+          setLeaving(presentiQui.filter(p => p.status === 'leaving'));
+          
+          console.log('📍 Fallback - Presenti caricati:', presentiQui.length);
+        } catch (fallbackErr) {
+          console.error("Errore anche nel fallback:", fallbackErr);
+          // Nessun dato, mantieni gli array vuoti
+          setCurrentPresent([]);
+          setEntering([]);
+          setLeaving([]);
+        }
       }
     };
 
