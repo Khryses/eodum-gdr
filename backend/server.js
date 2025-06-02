@@ -7,6 +7,7 @@ const db = require('./models');
 const authRoutes = require('./routes/authRoutes');
 const presenzeRoutes = require('./routes/presenzeRoutes');
 const playerRoutes = require('./routes/playerRoutes');
+const systemRoutes = require('./routes/systemRoutes'); // Aggiungi questa linea
 const bcrypt = require('bcrypt');
 
 app.use(cors());
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/presenze', presenzeRoutes);
 app.use('/api/player', playerRoutes);
+app.use('/api/system', systemRoutes); // Aggiungi questa linea
 
 const PORT = process.env.PORT || 4000;
 
