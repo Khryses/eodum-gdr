@@ -55,6 +55,10 @@ export default function SidebarSinistra({
             <User className="w-4 h-4" /> Scheda Personaggio
           </button>
             {admin && (
+ szdxgu-codex/modificare-modale-documentazione-con-permessi-admin
+
+          {isAdmin && (
+ master
             <button
               onClick={onOpenManagement}
               className="flex items-center gap-3 w-full text-left text-red-400 hover:text-red-300 transition-colors"
