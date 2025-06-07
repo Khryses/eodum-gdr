@@ -55,6 +55,7 @@ export default function SidebarSinistra({
             <User className="w-4 h-4" /> Scheda Personaggio
           </button>
             {admin && (
+          {isAdmin && (
             <button
               onClick={onOpenManagement}
               className="flex items-center gap-3 w-full text-left text-red-400 hover:text-red-300 transition-colors"
