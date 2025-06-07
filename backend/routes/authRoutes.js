@@ -24,12 +24,13 @@ router.post('/login', async (req, res) => {
     console.log(`${user.nome} ${user.cognome} è entrato nella Piazza Centrale`);
 
     const token = generateToken(user.id);
-    res.json({ 
+    res.json({
       token,
       user: {
         nome: user.nome,
         cognome: user.cognome,
-        location: user.current_location
+        location: user.current_location,
+        role: user.role
       }
     });
   } catch (error) {

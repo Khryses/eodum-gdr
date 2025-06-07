@@ -17,6 +17,8 @@ export default function Land() {
   const navigate = useNavigate();
   const { logout } = useUser();
   const { logoutPenalty, connectionLost, connectionRestored } = useGameNotifications();
+
+  const isAdmin = localStorage.getItem('role') === 'admin';
   
   // Stati per i modali
   const [showDocumentation, setShowDocumentation] = useState(false);
@@ -185,12 +187,13 @@ export default function Land() {
 
       {/* Layout 3 colonne */}
       <div className="flex h-[calc(100%-3rem)]">
-        <SidebarSinistra 
-          onOpenDocs={() => setShowDocumentation(true)} 
-          onOpenSheet={() => setShowSheet(true)} 
+        <SidebarSinistra
+          onOpenDocs={() => setShowDocumentation(true)}
+          onOpenSheet={() => setShowSheet(true)}
           onOpenManagement={() => setShowManagement(true)}
           onRefresh={handleRefresh}
           onNormalLogout={handleNormalLogout}
+          isAdmin={isAdmin}
         />
         <ColonnaCentrale key={lastRefresh} />
         <EodumLandPage 
