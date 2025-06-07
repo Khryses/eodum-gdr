@@ -92,6 +92,7 @@ function App() {
       ...prev,
       [modalName]: { ...prev[modalName], visible: true }
     }));
+    handleFocus(modalName);
   };
 
   return (
