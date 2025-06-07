@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const { User } = require('../models');
 const { generateToken } = require('../utils/jwtUtils');
+const authMiddleware = require('../middleware/authMiddleware');
 
 // Login
 router.post('/login', async (req, res) => {
@@ -59,6 +60,11 @@ router.post('/logout', async (req, res) => {
     console.error("Errore durante il logout:", error);
     res.status(500).json({ message: "Errore durante il logout" });
   }
+
+// Ottieni i dati dell'utente loggato
+router.get('/me', authMiddleware, async (req, res) => {
+  const { id, nome, cognome, role, current_location } = req.user;
+  res.json({ id, nome, cognome, role, location: current_location });
 });
 
 module.exports = router;

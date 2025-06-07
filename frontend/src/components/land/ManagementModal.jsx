@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Edit3, Trash2, Save, Map, MapPin, Image, FileText, AlertTriangle } from 'lucide-react';
 import api from '../../api';
+import { useDocumentation } from '../../context/DocumentationContext';
 
 function ManagementModal({
   onClose,
@@ -25,6 +26,8 @@ function ManagementModal({
     image: '',
     description: ''
   });
+  const { docs, updateSection } = useDocumentation();
+  const [editedDocs, setEditedDocs] = useState(docs);
 
   useEffect(() => {
     loadMapData();
@@ -237,12 +240,19 @@ function ManagementModal({
           <Map className="w-4 h-4 inline mr-2" />
           Gestione Zone
         </button>
-        <button 
+        <button
           onClick={() => setActiveTab('locations')}
           className={`px-4 py-2 text-sm font-medium ${activeTab === 'locations' ? 'text-red-400 border-b-2 border-red-400' : 'text-gray-400 hover:text-gray-300'}`}
         >
           <MapPin className="w-4 h-4 inline mr-2" />
           Gestione Location
+        </button>
+        <button
+          onClick={() => setActiveTab('docs')}
+          className={`px-4 py-2 text-sm font-medium ${activeTab === 'docs' ? 'text-red-400 border-b-2 border-red-400' : 'text-gray-400 hover:text-gray-300'}`}
+        >
+          <FileText className="w-4 h-4 inline mr-2" />
+          Modifica Documentazione
         </button>
       </div>
 
@@ -446,6 +456,30 @@ function ManagementModal({
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {activeTab === 'docs' && (
+          <div className="space-y-4">
+            {Object.entries(editedDocs).map(([section, text]) => (
+              <div key={section}>
+                <label className="text-red-300 text-sm block mb-1">{section}</label>
+                <textarea
+                  value={text}
+                  onChange={(e) => setEditedDocs({ ...editedDocs, [section]: e.target.value })}
+                  className="w-full bg-gray-700 text-red-100 px-3 py-2 rounded text-sm h-24 resize-none"
+                />
+              </div>
+            ))}
+            <button
+              onClick={() => {
+                Object.entries(editedDocs).forEach(([sec, content]) => updateSection(sec, content));
+              }}
+              className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded text-sm flex items-center gap-2"
+            >
+              <Save className="w-4 h-4" />
+              Salva Documentazione
+            </button>
           </div>
         )}
       </div>

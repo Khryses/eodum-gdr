@@ -7,13 +7,16 @@ import './styles/globals.css';
 // Context Providers
 import { UserProvider } from './context/UserContext';
 import { NotificationProvider } from './components/NotificationSystem';
+import { DocumentationProvider } from './context/DocumentationContext';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
       <NotificationProvider>
         <UserProvider>
-          <App />
+          <DocumentationProvider>
+            <App />
+          </DocumentationProvider>
         </UserProvider>
       </NotificationProvider>
     </BrowserRouter>

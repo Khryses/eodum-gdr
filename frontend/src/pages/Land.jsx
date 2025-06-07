@@ -9,13 +9,16 @@ import AllPresentModal from '../components/land/AllPresentModal';
 import LogoutWarningModal from '../components/land/LogoutWarningModal';
 import ManagementModal from '../components/land/ManagementModal';
 import { useUser } from '../context/UserContext';
+import useUserData from '../hooks/useUserData';
 import { useGameNotifications } from '../components/NotificationSystem';
 import { getLogoutPenaltyTime, setLogoutPenalty, formatTime } from '../utils/gameUtils';
 import api from '../api';
 
 export default function Land() {
   const navigate = useNavigate();
-  const { logout } = useUser();
+  const { logout, token } = useUser();
+  const userData = useUserData(token);
+  const isAdmin = userData?.role === 'admin';
   const { logoutPenalty, connectionLost, connectionRestored } = useGameNotifications();
   
   // Stati per i modali
@@ -185,12 +188,13 @@ export default function Land() {
 
       {/* Layout 3 colonne */}
       <div className="flex h-[calc(100%-3rem)]">
-        <SidebarSinistra 
-          onOpenDocs={() => setShowDocumentation(true)} 
-          onOpenSheet={() => setShowSheet(true)} 
+        <SidebarSinistra
+          onOpenDocs={() => setShowDocumentation(true)}
+          onOpenSheet={() => setShowSheet(true)}
           onOpenManagement={() => setShowManagement(true)}
           onRefresh={handleRefresh}
           onNormalLogout={handleNormalLogout}
+          isAdmin={isAdmin}
         />
         <ColonnaCentrale key={lastRefresh} />
         <EodumLandPage 
@@ -239,7 +243,7 @@ export default function Land() {
         />
       )}
 
-      {showManagement && (
+      {showManagement && isAdmin && (
         <ManagementModal
           onClose={() => setShowManagement(false)}
           position={managementPosition}
