@@ -109,7 +109,7 @@ const LoginModal = ({
       
       if (openInPopup) {
         // Apri in popup
-        const popup = window.open('/land', '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+        const popup = window.open('/#/land', '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
         if (popup) {
           popup.focus();
           onClose();
