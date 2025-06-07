@@ -1,4 +1,8 @@
 backend/node_modules/
 backend/.env
 logs/
+<<<<<<< HEAD
 *.log
+=======
+*.log
+>>>>>>> a6b45c06a5add896ae08af2983c813c7671bd44c
