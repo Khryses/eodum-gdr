@@ -9,6 +9,7 @@ export default function SidebarSinistra({
   onNormalLogout,
   isAdmin
 }) {
+  const admin = typeof isAdmin === 'boolean' ? isAdmin : localStorage.getItem('role') === 'admin';
   const handleRefreshClick = () => {
     // Animazione del bottone
     const button = document.getElementById('refresh-button');
@@ -53,6 +54,7 @@ export default function SidebarSinistra({
           <button onClick={onOpenSheet} className="flex items-center gap-3 w-full text-left hover:text-cyan-100 transition-colors">
             <User className="w-4 h-4" /> Scheda Personaggio
           </button>
+            {admin && (
           {isAdmin && (
             <button
               onClick={onOpenManagement}
