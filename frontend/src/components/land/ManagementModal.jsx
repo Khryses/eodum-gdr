@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Edit3, Trash2, Save, Map, MapPin, Image, FileText, AlertTriangle } from 'lucide-react';
 import api from '../../api';
+import { loadDocumentation, saveDocumentation } from '../../data/documentation';
 
 function ManagementModal({
   onClose,
@@ -13,11 +14,13 @@ function ManagementModal({
   zIndex,
   onMapUpdate
 }) {
+  const [activeMenu, setActiveMenu] = useState('map');
   const [activeTab, setActiveTab] = useState('zones');
   const [zones, setZones] = useState({});
   const [loading, setLoading] = useState(true);
   const [editingZone, setEditingZone] = useState(null);
   const [editingLocation, setEditingLocation] = useState(null);
+  const [documentationData, setDocumentationData] = useState(loadDocumentation());
   const [newZone, setNewZone] = useState({ name: '', description: '' });
   const [newLocation, setNewLocation] = useState({
     name: '',
@@ -166,10 +169,15 @@ function ManagementModal({
       const updatedZones = { ...zones };
       delete updatedZones[zoneName].places[locationName];
       setZones(updatedZones);
-      
+
       // Notifica aggiornamento
       if (onMapUpdate) onMapUpdate();
     }
+  };
+
+  const handleSaveDocumentation = () => {
+    saveDocumentation(documentationData);
+    alert('Documentazione salvata');
   };
 
   const handleMouseDown = (e) => {
@@ -228,24 +236,87 @@ function ManagementModal({
         </button>
       </div>
 
-      {/* Tabs */}
+      {/* Menu */}
       <div className="flex border-b border-gray-700">
-        <button 
-          onClick={() => setActiveTab('zones')}
-          className={`px-4 py-2 text-sm font-medium ${activeTab === 'zones' ? 'text-red-400 border-b-2 border-red-400' : 'text-gray-400 hover:text-gray-300'}`}
+        <button
+          onClick={() => setActiveMenu('documentation')}
+          className={`px-4 py-2 text-sm font-medium ${activeMenu === 'documentation' ? 'text-red-400 border-b-2 border-red-400' : 'text-gray-400 hover:text-gray-300'}`}
+        >
+          <FileText className="w-4 h-4 inline mr-2" />
+          Modifica Documentazione
+        </button>
+        <button
+          onClick={() => setActiveMenu('map')}
+          className={`px-4 py-2 text-sm font-medium ${activeMenu === 'map' ? 'text-red-400 border-b-2 border-red-400' : 'text-gray-400 hover:text-gray-300'}`}
         >
           <Map className="w-4 h-4 inline mr-2" />
-          Gestione Zone
-        </button>
-        <button 
-          onClick={() => setActiveTab('locations')}
-          className={`px-4 py-2 text-sm font-medium ${activeTab === 'locations' ? 'text-red-400 border-b-2 border-red-400' : 'text-gray-400 hover:text-gray-300'}`}
-        >
-          <MapPin className="w-4 h-4 inline mr-2" />
-          Gestione Location
+          Modifica Mappa
         </button>
       </div>
 
+      {activeMenu === 'map' && (
+        <div className="flex border-b border-gray-700">
+          <button
+            onClick={() => setActiveTab('zones')}
+            className={`px-4 py-2 text-sm font-medium ${activeTab === 'zones' ? 'text-red-400 border-b-2 border-red-400' : 'text-gray-400 hover:text-gray-300'}`}
+          >
+            <Map className="w-4 h-4 inline mr-2" />
+            Gestione Zone
+          </button>
+          <button
+            onClick={() => setActiveTab('locations')}
+            className={`px-4 py-2 text-sm font-medium ${activeTab === 'locations' ? 'text-red-400 border-b-2 border-red-400' : 'text-gray-400 hover:text-gray-300'}`}
+          >
+            <MapPin className="w-4 h-4 inline mr-2" />
+            Gestione Location
+          </button>
+        </div>
+      )}
+
+      {activeMenu === 'documentation' && (
+        <div className="scrollable-content p-6 h-[calc(100%-140px)] overflow-y-auto custom-scrollbar space-y-4">
+          <div>
+            <label className="text-red-300 text-sm block mb-1">Caratteristiche</label>
+            <textarea
+              className="w-full bg-gray-700 text-red-100 px-3 py-2 rounded text-sm h-24 resize-none"
+              value={documentationData.caratteristiche}
+              onChange={(e) => setDocumentationData({ ...documentationData, caratteristiche: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="text-red-300 text-sm block mb-1">Abilità</label>
+            <textarea
+              className="w-full bg-gray-700 text-red-100 px-3 py-2 rounded text-sm h-24 resize-none"
+              value={documentationData.abilita}
+              onChange={(e) => setDocumentationData({ ...documentationData, abilita: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="text-red-300 text-sm block mb-1">Creazione Personaggio</label>
+            <textarea
+              className="w-full bg-gray-700 text-red-100 px-3 py-2 rounded text-sm h-24 resize-none"
+              value={documentationData.creazione}
+              onChange={(e) => setDocumentationData({ ...documentationData, creazione: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="text-red-300 text-sm block mb-1">Regole</label>
+            <textarea
+              className="w-full bg-gray-700 text-red-100 px-3 py-2 rounded text-sm h-24 resize-none"
+              value={documentationData.regole}
+              onChange={(e) => setDocumentationData({ ...documentationData, regole: e.target.value })}
+            />
+          </div>
+          <button
+            onClick={handleSaveDocumentation}
+            className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded text-sm"
+          >
+            <Save className="w-4 h-4 inline mr-2" />Salva
+          </button>
+        </div>
+      )}
+
+      {activeMenu === 'map' && (
       <div className="scrollable-content p-6 h-[calc(100%-140px)] overflow-y-auto custom-scrollbar">
         {activeTab === 'zones' && (
           <div className="space-y-6">
@@ -449,8 +520,9 @@ function ManagementModal({
           </div>
         )}
       </div>
-    </div>
-  );
+    )}
+  </div>
+);
 }
 
 export default ManagementModal;
