@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
+import { HashRouter } from 'react-router-dom';
 import App from './App';
 import './styles/globals.css';
 
@@ -10,12 +10,12 @@ import { NotificationProvider } from './components/NotificationSystem';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <NotificationProvider>
-        <UserProvider>
-          <App />
-        </UserProvider>
-      </NotificationProvider>
-    </BrowserRouter>
+    <HashRouter>
+  <NotificationProvider>
+    <UserProvider>
+      <App />
+    </UserProvider>
+  </NotificationProvider>
+</HashRouter>
   </React.StrictMode>
 );
