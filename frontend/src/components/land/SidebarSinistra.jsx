@@ -1,3 +1,6 @@
++18
+-14
+
 import React from 'react';
 import { Briefcase, DollarSign, ShoppingCart, BookOpen, FileText, Settings, MessageSquare, Home, RefreshCw, User, LogOut } from 'lucide-react';
 
