@@ -174,9 +174,14 @@ export default function Land() {
           <button className="px-3 py-1 bg-gray-800/50 border border-blue-600/50 rounded text-sm text-blue-400">
             Bacheche ON/OFF
           </button>
-          <button className="px-3 py-1 bg-gray-800/50 border border-purple-600/50 rounded text-sm text-purple-300">
-            Admin
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => setShowManagement(true)}
+              className="px-3 py-1 bg-gray-800/50 border border-purple-600/50 rounded text-sm text-purple-300"
+            >
+              Gestione
+            </button>
+          )}
           
           {/* Indicatore ultimo refresh */}
           <div className="text-xs text-cyan-500">

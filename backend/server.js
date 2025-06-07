@@ -43,6 +43,10 @@ app.listen(PORT, async () => {
 
     if (created) {
       console.log('✅ Utente admin creato');
+    } else if (admin.role !== 'admin') {
+      admin.role = 'admin';
+      await admin.save();
+      console.log('🔄 Utente admin aggiornato a ruolo admin');
     } else {
       console.log('ℹ️ Utente admin già esistente');
     }
