@@ -153,7 +153,6 @@ function App() {
                 onFocus={() => handleFocus('login')}
                 onClose={() => closeModal('login')}
                 onOpenForgotPassword={() => {
-                  closeModal('login');
                   openModal('forgotPassword');
                 }}
               />
