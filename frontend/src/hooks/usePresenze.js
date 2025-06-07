@@ -67,7 +67,10 @@ export default function usePresenze() {
     const connectWebSocket = () => {
       try {
         // Prova a connettersi al WebSocket
-        ws = new WebSocket('ws://localhost:4000/ws/presenze');
+        const wsUrl =
+          (import.meta.env.VITE_WS_URL || 'ws://localhost:4000') +
+          '/ws/presenze';
+        ws = new WebSocket(wsUrl);
         
         ws.onopen = () => {
           console.log('WebSocket connesso per presenze');
