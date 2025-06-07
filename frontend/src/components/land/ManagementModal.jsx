@@ -520,8 +520,9 @@ function ManagementModal({
           </div>
         )}
       </div>
-    </div>
-  );
+    )}
+  </div>
+);
 }
 
 export default ManagementModal;
