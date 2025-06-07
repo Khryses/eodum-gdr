@@ -101,8 +101,11 @@ const LoginModal = ({
         rememberMe 
       });
       
-      // Salva il token
+      // Salva il token e il ruolo
       localStorage.setItem('token', response.data.token);
+      if (response.data.user?.role) {
+        localStorage.setItem('role', response.data.user.role);
+      }
       
       // Se c'era una penalità, rimuovila dopo login successo
       localStorage.removeItem('forceLogoutTime');
