@@ -1,13 +1,15 @@
 import React from 'react';
 import { Briefcase, DollarSign, ShoppingCart, BookOpen, FileText, Settings, MessageSquare, Home, RefreshCw, User, LogOut } from 'lucide-react';
 
-export default function SidebarSinistra({ 
-  onOpenDocs, 
-  onOpenSheet, 
-  onOpenManagement, 
-  onRefresh, 
-  onNormalLogout 
+export default function SidebarSinistra({
+  onOpenDocs,
+  onOpenSheet,
+  onOpenManagement,
+  onRefresh,
+  onNormalLogout,
+  isAdmin
 }) {
+  const admin = typeof isAdmin === 'boolean' ? isAdmin : localStorage.getItem('role') === 'admin';
   const handleRefreshClick = () => {
     // Animazione del bottone
     const button = document.getElementById('refresh-button');
@@ -52,13 +54,15 @@ export default function SidebarSinistra({
           <button onClick={onOpenSheet} className="flex items-center gap-3 w-full text-left hover:text-cyan-100 transition-colors">
             <User className="w-4 h-4" /> Scheda Personaggio
           </button>
-          <button 
-            onClick={onOpenManagement} 
-            className="flex items-center gap-3 w-full text-left text-red-400 hover:text-red-300 transition-colors"
-            title="Console di gestione - Solo Admin"
-          >
-            <Settings className="w-4 h-4" /> Gestione
-          </button>
+          {admin ? (
+            <button
+              onClick={onOpenManagement}
+              className="flex items-center gap-3 w-full text-left text-red-400 hover:text-red-300 transition-colors"
+              title="Console di gestione - Solo Admin"
+            >
+              <Settings className="w-4 h-4" /> Gestione
+            </button>
+          ) : null}
         </div>
       </div>
       
