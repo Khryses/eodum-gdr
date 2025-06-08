@@ -3,12 +3,11 @@ import { Map, Users, Cloud, Sun, CloudRain, Snowflake, Moon, CloudSnow } from 'l
 import useWeather from '../../hooks/useWeather';
 import api from '../../api';
 
-const EodumLandPage = ({ onOpenAllPresent }) => {
+const EodumLandPage = ({ onOpenAllPresent, location }) => {
   const weather = useWeather();
   const [currentPresent, setCurrentPresent] = useState([]);
   const [entering, setEntering] = useState([]);
   const [leaving, setLeaving] = useState([]);
-  const location = "Piazza Centrale"; // da rendere dinamico in futuro
 
   useEffect(() => {
     const fetchPresenze = async () => {

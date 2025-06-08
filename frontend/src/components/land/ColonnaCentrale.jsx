@@ -70,11 +70,10 @@ const locationData = {
   }
 };
 
-export default function ColonnaCentrale() {
+export default function ColonnaCentrale({ currentLocation, onLocationChange }) {
   const [zona, setZona] = useState(null);
   const [luogo, setLuogo] = useState(null);
-  const [currentLocation, setCurrentLocation] = useState('Piazza Centrale');
-  const [visitedLocations, setVisitedLocations] = useState(['Piazza Centrale']);
+  const [visitedLocations, setVisitedLocations] = useState([currentLocation]);
   const [chat, setChat] = useState([]);
   const [input, setInput] = useState("");
 
@@ -93,7 +92,7 @@ export default function ColonnaCentrale() {
         timestamp: new Date().toISOString()
       });
       
-      setCurrentLocation(locationName);
+      onLocationChange && onLocationChange(locationName);
       
       // Aggiungi alla lista dei luoghi visitati
       if (!visitedLocations.includes(locationName)) {
@@ -106,7 +105,7 @@ export default function ColonnaCentrale() {
     } catch (error) {
       console.error('Errore sincronizzazione location:', error);
       // Continua comunque con l'aggiornamento locale
-      setCurrentLocation(locationName);
+      onLocationChange && onLocationChange(locationName);
       if (!visitedLocations.includes(locationName)) {
         setVisitedLocations(prev => [...prev, locationName]);
       }
