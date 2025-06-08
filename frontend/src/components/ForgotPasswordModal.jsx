@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Mail, Send } from 'lucide-react';
-import axios from 'axios';
+import api from '../api';
 
 const ForgotPasswordModal = ({
   onClose,
@@ -24,7 +24,7 @@ const ForgotPasswordModal = ({
 
     try {
       // Simulazione invio email
-      await axios.post('http://localhost:4000/api/auth/forgot-password', { email });
+      await api.post('/auth/forgot-password', { email });
       setIsSubmitted(true);
       setError('');
     } catch (err) {

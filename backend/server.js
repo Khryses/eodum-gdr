@@ -7,7 +7,8 @@ const db = require('./models');
 const authRoutes = require('./routes/authRoutes');
 const presenzeRoutes = require('./routes/presenzeRoutes');
 const playerRoutes = require('./routes/playerRoutes');
-const systemRoutes = require('./routes/systemRoutes'); // Aggiungi questa linea
+const systemRoutes = require('./routes/systemRoutes');
+const mapRoutes = require('./routes/mapRoutes'); // Nuova route per mappe
 const bcrypt = require('bcrypt');
 
 app.use(cors());
@@ -16,7 +17,8 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/presenze', presenzeRoutes);
 app.use('/api/player', playerRoutes);
-app.use('/api/system', systemRoutes); // Aggiungi questa linea
+app.use('/api/system', systemRoutes);
+app.use('/api/maps', mapRoutes); // Aggiungi route mappe
 
 const PORT = process.env.PORT || 4000;
 
@@ -43,6 +45,10 @@ app.listen(PORT, async () => {
 
     if (created) {
       console.log('✅ Utente admin creato');
+    } else if (admin.role !== 'admin') {
+      admin.role = 'admin';
+      await admin.save();
+      console.log('🔄 Utente admin aggiornato a ruolo admin');
     } else {
       console.log('ℹ️ Utente admin già esistente');
     }

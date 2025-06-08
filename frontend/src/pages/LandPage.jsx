@@ -1,6 +1,6 @@
 
 import React, { useEffect, useContext } from 'react';
-import axios from 'axios';
+import api from '../api';
 import { UserContext } from '../contexts/UserContext';
 
 const LandPage = () => {
@@ -10,15 +10,7 @@ const LandPage = () => {
     const setOnline = async () => {
       if (user && user.token) {
         try {
-          await axios.post(
-            'http://localhost:4000/api/presenze/online',
-            {},
-            {
-              headers: {
-                Authorization: `Bearer ${user.token}`,
-              },
-            }
-          );
+          await api.post('/presenze/online');
           console.log('✅ Stato online aggiornato');
         } catch (error) {
           console.error('❌ Errore impostando online:', error);

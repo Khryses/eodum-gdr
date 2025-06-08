@@ -101,15 +101,18 @@ const LoginModal = ({
         rememberMe 
       });
       
-      // Salva il token
+      // Salva il token e il ruolo
       localStorage.setItem('token', response.data.token);
+      if (response.data.user?.role) {
+        localStorage.setItem('role', response.data.user.role);
+      }
       
       // Se c'era una penalità, rimuovila dopo login successo
       localStorage.removeItem('forceLogoutTime');
       
       if (openInPopup) {
         // Apri in popup
-        const popup = window.open('/land', '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+        const popup = window.open('/#/land', '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
         if (popup) {
           popup.focus();
           onClose();

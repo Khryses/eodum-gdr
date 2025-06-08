@@ -17,6 +17,8 @@ export default function Land() {
   const navigate = useNavigate();
   const { logout } = useUser();
   const { logoutPenalty, connectionLost, connectionRestored } = useGameNotifications();
+
+  const isAdmin = localStorage.getItem('role') === 'admin';
   
   // Stati per i modali
   const [showDocumentation, setShowDocumentation] = useState(false);
@@ -24,6 +26,7 @@ export default function Land() {
   const [showAllPresent, setShowAllPresent] = useState(false);
   const [showLogoutWarning, setShowLogoutWarning] = useState(false);
   const [showManagement, setShowManagement] = useState(false);
+  const [managementTab, setManagementTab] = useState('map'); // Per specificare quale tab aprire
   
   // Stato per il refresh
   const [lastRefresh, setLastRefresh] = useState(Date.now());
@@ -152,6 +155,12 @@ export default function Land() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
 
+  // Handler per aprire il management modal con tab specifici
+  const handleOpenManagement = (tab = 'map') => {
+    setManagementTab(tab);
+    setShowManagement(true);
+  };
+
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -160,7 +169,7 @@ export default function Land() {
 
   return (
     <div className="h-screen bg-gray-950 text-cyan-300 font-mono overflow-hidden relative">
-      {/* Topbar - Rimossa la X */}
+      {/* Topbar */}
       <div className="h-12 bg-gray-900/90 border-b border-cyan-600/50 flex items-center justify-between px-4 backdrop-blur-sm">
         <div className="text-cyan-300 font-bold text-lg tracking-wider">
           <span className="text-blue-400">E</span>ODUM <span className="text-cyan-600 text-sm ml-2">v2.1</span>
@@ -172,9 +181,14 @@ export default function Land() {
           <button className="px-3 py-1 bg-gray-800/50 border border-blue-600/50 rounded text-sm text-blue-400">
             Bacheche ON/OFF
           </button>
-          <button className="px-3 py-1 bg-gray-800/50 border border-purple-600/50 rounded text-sm text-purple-300">
-            Admin
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => handleOpenManagement('map')}
+              className="px-3 py-1 bg-red-900/50 border border-red-600/50 rounded text-sm text-red-300 hover:bg-red-800/50 transition-colors"
+            >
+              🔧 Console Admin
+            </button>
+          )}
           
           {/* Indicatore ultimo refresh */}
           <div className="text-xs text-cyan-500">
@@ -185,12 +199,13 @@ export default function Land() {
 
       {/* Layout 3 colonne */}
       <div className="flex h-[calc(100%-3rem)]">
-        <SidebarSinistra 
-          onOpenDocs={() => setShowDocumentation(true)} 
-          onOpenSheet={() => setShowSheet(true)} 
-          onOpenManagement={() => setShowManagement(true)}
+        <SidebarSinistra
+          onOpenDocs={() => setShowDocumentation(true)}
+          onOpenSheet={() => setShowSheet(true)}
+          onOpenManagement={handleOpenManagement}
           onRefresh={handleRefresh}
           onNormalLogout={handleNormalLogout}
+          isAdmin={isAdmin}
         />
         <ColonnaCentrale key={lastRefresh} />
         <EodumLandPage 
@@ -250,6 +265,7 @@ export default function Land() {
           zIndex={zIndex + 3}
           onFocus={() => {}}
           onMapUpdate={handleRefresh}
+          initialTab={managementTab}
         />
       )}
 
