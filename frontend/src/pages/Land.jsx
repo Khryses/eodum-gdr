@@ -41,6 +41,7 @@ export default function Land() {
   
   // Stato per il refresh
   const [lastRefresh, setLastRefresh] = useState(Date.now());
+  const [currentLocation, setCurrentLocation] = useState('Piazza Centrale');
   
   // Posizioni modali
   const [documentationPosition, setDocumentationPosition] = useState({ x: 150, y: 150 });
@@ -218,9 +219,14 @@ export default function Land() {
           onNormalLogout={handleNormalLogout}
           isAdmin={isAdmin}
         />
-        <ColonnaCentrale key={lastRefresh} />
-        <EodumLandPage 
-          onOpenAllPresent={() => setShowAllPresent(true)} 
+        <ColonnaCentrale
+          key={lastRefresh}
+          currentLocation={currentLocation}
+          onLocationChange={setCurrentLocation}
+        />
+        <EodumLandPage
+          location={currentLocation}
+          onOpenAllPresent={() => setShowAllPresent(true)}
           refreshTrigger={lastRefresh}
         />
       </div>
