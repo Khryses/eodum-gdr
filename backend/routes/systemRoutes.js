@@ -152,6 +152,40 @@ router.get('/weather', (req, res) => {
   }
 });
 
+// LISTA GENERALE DELLE PRESENZE (richiede autenticazione)
+router.get('/presenze', authMiddleware, async (req, res) => {
+  try {
+    const utenti = await User.findAll({
+      where: { is_online: true },
+      attributes: ['id', 'nome', 'cognome', 'current_location', 'updated_at']
+    });
+
+    const now = new Date();
+    const players = utenti.map(user => {
+      const lastUpdate = new Date(user.updated_at);
+      const diffMinutes = (now - lastUpdate) / (1000 * 60);
+
+      let status = 'active';
+      if (diffMinutes <= 1) {
+        status = 'entering';
+      } else if (diffMinutes > 10) {
+        status = 'leaving';
+      }
+
+      return {
+        name: `${user.nome} ${user.cognome}`,
+        status,
+        location: user.current_location
+      };
+    });
+
+    res.json({ players, lastUpdate: new Date().toISOString() });
+  } catch (error) {
+    console.error('Errore in /system/presenze:', error);
+    res.status(500).json({ message: 'Errore nel recupero delle presenze' });
+  }
+});
+
 // TUTTI I PRESENTI NELLA LAND (richiede autenticazione)
 router.get('/all-present', authMiddleware, async (req, res) => {
   try {
