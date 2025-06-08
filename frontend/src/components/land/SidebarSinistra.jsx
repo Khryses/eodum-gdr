@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { 
   Briefcase, DollarSign, ShoppingCart, BookOpen, FileText, Settings, 
   MessageSquare, Home, RefreshCw, User, LogOut, Shield, Map, 
-  Users, Ban, Database, Eye, AlertTriangle, Plus, Trash2, Edit3,
-  Save, UserMinus, MessageCircle, Activity
+  Users, Ban, Database, Eye, AlertTriangle, UserMinus, MessageCircle, Activity
 } from 'lucide-react';
 
 export default function SidebarSinistra({
@@ -16,7 +15,6 @@ export default function SidebarSinistra({
 }) {
   const admin = typeof isAdmin === 'boolean' ? isAdmin : localStorage.getItem('role') === 'admin';
   const [showAdminPanel, setShowAdminPanel] = useState(false);
-  const [activeAdminTab, setActiveAdminTab] = useState('maps');
 
   const handleRefreshClick = () => {
     const button = document.getElementById('refresh-button');
@@ -32,234 +30,6 @@ export default function SidebarSinistra({
     }
   };
 
-  // Gestori per le funzioni admin
-  const handleAdminMapEdit = () => {
-    onOpenManagement?.();
-  };
-
-  const handleAdminDocEdit = () => {
-    // Apri modal gestione con tab documentazione
-    if (onOpenManagement) {
-      onOpenManagement('documentation');
-    }
-  };
-
-  const handleAdminUserManagement = () => {
-    // Placeholder per gestione utenti
-    alert('Gestione Utenti: Funzionalità in sviluppo\n\n- Lista utenti online\n- Sistema ban/kick\n- Modifica personaggi\n- Log attività');
-  };
-
-  const handleAdminSystemLogs = () => {
-    // Placeholder per log di sistema
-    alert('Log di Sistema: Funzionalità in sviluppo\n\n- Log connessioni\n- Log errori\n- Statistiche server\n- Monitoraggio prestazioni');
-  };
-
-  const handleAdminBackup = () => {
-    // Placeholder per backup
-    if (confirm('Vuoi creare un backup del database?')) {
-      alert('Backup Database: Funzionalità in sviluppo\n\n- Backup automatico\n- Restore dati\n- Export/Import');
-    }
-  };
-
-  const handleAdminAnnouncements = () => {
-    // Placeholder per annunci
-    const message = prompt('Inserisci un annuncio per tutti i giocatori:');
-    if (message) {
-      alert(`Annuncio inviato: "${message}"`);
-    }
-  };
-
-  const handleAdminMaintenance = () => {
-    // Placeholder per manutenzione
-    if (confirm('Vuoi attivare la modalità manutenzione?')) {
-      alert('Modalità Manutenzione: Funzionalità in sviluppo\n\n- Blocco accessi\n- Messaggio personalizzato\n- Riavvio server');
-    }
-  };
-
-  const AdminPanel = () => (
-    <div className="bg-red-900/20 border border-red-600/30 rounded-lg p-3 mb-4">
-      <div className="flex items-center gap-2 mb-3">
-        <Shield className="w-4 h-4 text-red-400" />
-        <h4 className="text-red-400 font-bold text-sm">PANNELLO ADMIN</h4>
-      </div>
-      
-      {/* Menu tabs */}
-      <div className="flex flex-wrap gap-1 mb-3">
-        <button
-          onClick={() => setActiveAdminTab('maps')}
-          className={`px-2 py-1 rounded text-xs transition-colors ${
-            activeAdminTab === 'maps' 
-              ? 'bg-red-600 text-white' 
-              : 'bg-gray-700 text-red-300 hover:bg-gray-600'
-          }`}
-        >
-          Mappe
-        </button>
-        <button
-          onClick={() => setActiveAdminTab('docs')}
-          className={`px-2 py-1 rounded text-xs transition-colors ${
-            activeAdminTab === 'docs' 
-              ? 'bg-red-600 text-white' 
-              : 'bg-gray-700 text-red-300 hover:bg-gray-600'
-          }`}
-        >
-          Docs
-        </button>
-        <button
-          onClick={() => setActiveAdminTab('users')}
-          className={`px-2 py-1 rounded text-xs transition-colors ${
-            activeAdminTab === 'users' 
-              ? 'bg-red-600 text-white' 
-              : 'bg-gray-700 text-red-300 hover:bg-gray-600'
-          }`}
-        >
-          Utenti
-        </button>
-        <button
-          onClick={() => setActiveAdminTab('system')}
-          className={`px-2 py-1 rounded text-xs transition-colors ${
-            activeAdminTab === 'system' 
-              ? 'bg-red-600 text-white' 
-              : 'bg-gray-700 text-red-300 hover:bg-gray-600'
-          }`}
-        >
-          Sistema
-        </button>
-      </div>
-
-      {/* Content */}
-      <div className="space-y-2 text-xs">
-        {activeAdminTab === 'maps' && (
-          <div className="space-y-2">
-            <button 
-              onClick={handleAdminMapEdit}
-              className="flex items-center gap-2 w-full text-left text-red-300 hover:text-red-200 hover:bg-red-900/30 p-1 rounded transition-colors"
-            >
-              <Map className="w-3 h-3" /> Modifica Mappe
-            </button>
-            <button 
-              onClick={handleAdminMapEdit}
-              className="flex items-center gap-2 w-full text-left text-red-300 hover:text-red-200 hover:bg-red-900/30 p-1 rounded transition-colors"
-            >
-              <Plus className="w-3 h-3" /> Aggiungi Zone
-            </button>
-            <button 
-              onClick={handleAdminMapEdit}
-              className="flex items-center gap-2 w-full text-left text-red-300 hover:text-red-200 hover:bg-red-900/30 p-1 rounded transition-colors"
-            >
-              <Edit3 className="w-3 h-3" /> Modifica Location
-            </button>
-            <button 
-              onClick={handleAdminBackup}
-              className="flex items-center gap-2 w-full text-left text-red-300 hover:text-red-200 hover:bg-red-900/30 p-1 rounded transition-colors"
-            >
-              <Database className="w-3 h-3" /> Import/Export
-            </button>
-          </div>
-        )}
-
-        {activeAdminTab === 'docs' && (
-          <div className="space-y-2">
-            <button 
-              onClick={handleAdminDocEdit}
-              className="flex items-center gap-2 w-full text-left text-red-300 hover:text-red-200 hover:bg-red-900/30 p-1 rounded transition-colors"
-            >
-              <FileText className="w-3 h-3" /> Modifica Regole
-            </button>
-            <button 
-              onClick={handleAdminDocEdit}
-              className="flex items-center gap-2 w-full text-left text-red-300 hover:text-red-200 hover:bg-red-900/30 p-1 rounded transition-colors"
-            >
-              <BookOpen className="w-3 h-3" /> Guide Giocatori
-            </button>
-            <button 
-              onClick={handleAdminDocEdit}
-              className="flex items-center gap-2 w-full text-left text-red-300 hover:text-red-200 hover:bg-red-900/30 p-1 rounded transition-colors"
-            >
-              <Edit3 className="w-3 h-3" /> Caratteristiche
-            </button>
-            <button 
-              onClick={handleAdminDocEdit}
-              className="flex items-center gap-2 w-full text-left text-red-300 hover:text-red-200 hover:bg-red-900/30 p-1 rounded transition-colors"
-            >
-              <Save className="w-3 h-3" /> Editor Documenti
-            </button>
-          </div>
-        )}
-
-        {activeAdminTab === 'users' && (
-          <div className="space-y-2">
-            <button 
-              onClick={handleAdminUserManagement}
-              className="flex items-center gap-2 w-full text-left text-red-300 hover:text-red-200 hover:bg-red-900/30 p-1 rounded transition-colors"
-            >
-              <Users className="w-3 h-3" /> Lista Utenti
-            </button>
-            <button 
-              onClick={handleAdminUserManagement}
-              className="flex items-center gap-2 w-full text-left text-red-300 hover:text-red-200 hover:bg-red-900/30 p-1 rounded transition-colors"
-            >
-              <Ban className="w-3 h-3" /> Sistema Ban
-            </button>
-            <button 
-              onClick={handleAdminUserManagement}
-              className="flex items-center gap-2 w-full text-left text-red-300 hover:text-red-200 hover:bg-red-900/30 p-1 rounded transition-colors"
-            >
-              <UserMinus className="w-3 h-3" /> Kick Utenti
-            </button>
-            <button 
-              onClick={handleAdminUserManagement}
-              className="flex items-center gap-2 w-full text-left text-red-300 hover:text-red-200 hover:bg-red-900/30 p-1 rounded transition-colors"
-            >
-              <Eye className="w-3 h-3" /> Monitor Chat
-            </button>
-            <button 
-              onClick={handleAdminUserManagement}
-              className="flex items-center gap-2 w-full text-left text-red-300 hover:text-red-200 hover:bg-red-900/30 p-1 rounded transition-colors"
-            >
-              <Edit3 className="w-3 h-3" /> Modifica PG
-            </button>
-          </div>
-        )}
-
-        {activeAdminTab === 'system' && (
-          <div className="space-y-2">
-            <button 
-              onClick={handleAdminSystemLogs}
-              className="flex items-center gap-2 w-full text-left text-red-300 hover:text-red-200 hover:bg-red-900/30 p-1 rounded transition-colors"
-            >
-              <Activity className="w-3 h-3" /> Log Sistema
-            </button>
-            <button 
-              onClick={handleAdminBackup}
-              className="flex items-center gap-2 w-full text-left text-red-300 hover:text-red-200 hover:bg-red-900/30 p-1 rounded transition-colors"
-            >
-              <Database className="w-3 h-3" /> Backup DB
-            </button>
-            <button 
-              onClick={handleAdminAnnouncements}
-              className="flex items-center gap-2 w-full text-left text-red-300 hover:text-red-200 hover:bg-red-900/30 p-1 rounded transition-colors"
-            >
-              <MessageCircle className="w-3 h-3" /> Annunci
-            </button>
-            <button 
-              onClick={handleAdminMaintenance}
-              className="flex items-center gap-2 w-full text-left text-red-300 hover:text-red-200 hover:bg-red-900/30 p-1 rounded transition-colors"
-            >
-              <AlertTriangle className="w-3 h-3" /> Manutenzione
-            </button>
-            <button 
-              onClick={handleAdminSystemLogs}
-              className="flex items-center gap-2 w-full text-left text-red-300 hover:text-red-200 hover:bg-red-900/30 p-1 rounded transition-colors"
-            >
-              <Settings className="w-3 h-3" /> Config Server
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
   return (
     <div className="w-64 bg-gray-900/70 border-r border-cyan-600/30 p-4 text-sm flex flex-col justify-between">
       <div>
@@ -271,24 +41,92 @@ export default function SidebarSinistra({
 
         {/* Pannello Admin - solo se admin */}
         {admin && (
-          <>
-            <div className="mb-4">
-              <button
-                onClick={() => setShowAdminPanel(!showAdminPanel)}
-                className="w-full flex items-center justify-between gap-2 p-2 bg-red-900/40 border border-red-600/50 rounded text-sm text-red-400 hover:bg-red-800/40 hover:border-red-500 transition-all"
-              >
-                <div className="flex items-center gap-2">
-                  <Shield className="w-4 h-4" />
-                  <span>Admin Panel</span>
-                </div>
-                <span className={`transform transition-transform ${showAdminPanel ? 'rotate-180' : ''}`}>
-                  ▼
-                </span>
-              </button>
-            </div>
+          <div className="mb-4">
+            <button
+              onClick={() => setShowAdminPanel(!showAdminPanel)}
+              className="w-full flex items-center justify-between gap-2 p-3 bg-red-900/40 border border-red-600/50 rounded text-sm text-red-400 hover:bg-red-800/40 hover:border-red-500 transition-all"
+            >
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4" />
+                <span className="font-semibold">ADMIN PANEL</span>
+              </div>
+              <span className={`transform transition-transform ${showAdminPanel ? 'rotate-180' : ''}`}>
+                ▼
+              </span>
+            </button>
 
-            {showAdminPanel && <AdminPanel />}
-          </>
+            {showAdminPanel && (
+              <div className="mt-3 bg-red-900/20 border border-red-600/30 rounded-lg p-3">
+                <div className="space-y-2 text-xs">
+                  {/* Console di Gestione */}
+                  <button 
+                    onClick={onOpenManagement}
+                    className="flex items-center gap-2 w-full text-left text-red-300 hover:text-red-200 transition-colors p-2 rounded hover:bg-red-800/20"
+                  >
+                    <Settings className="w-3 h-3" />
+                    Console di Gestione
+                  </button>
+
+                  {/* Separatori per categorie */}
+                  <div className="border-t border-red-600/20 my-2"></div>
+                  
+                  <div className="text-red-500 font-semibold text-xs mb-1">GESTIONE UTENTI</div>
+                  <button className="flex items-center gap-2 w-full text-left text-red-300 hover:text-red-200 transition-colors p-2 rounded hover:bg-red-800/20">
+                    <Users className="w-3 h-3" />
+                    Lista Utenti
+                  </button>
+                  <button className="flex items-center gap-2 w-full text-left text-red-300 hover:text-red-200 transition-colors p-2 rounded hover:bg-red-800/20">
+                    <Ban className="w-3 h-3" />
+                    Sistema Ban
+                  </button>
+                  <button className="flex items-center gap-2 w-full text-left text-red-300 hover:text-red-200 transition-colors p-2 rounded hover:bg-red-800/20">
+                    <UserMinus className="w-3 h-3" />
+                    Kick Utenti
+                  </button>
+
+                  <div className="border-t border-red-600/20 my-2"></div>
+                  
+                  <div className="text-red-500 font-semibold text-xs mb-1">CONTENUTI</div>
+                  <button className="flex items-center gap-2 w-full text-left text-red-300 hover:text-red-200 transition-colors p-2 rounded hover:bg-red-800/20">
+                    <Map className="w-3 h-3" />
+                    Modifica Mappe
+                  </button>
+                  <button className="flex items-center gap-2 w-full text-left text-red-300 hover:text-red-200 transition-colors p-2 rounded hover:bg-red-800/20">
+                    <FileText className="w-3 h-3" />
+                    Modifica Documenti
+                  </button>
+                  <button className="flex items-center gap-2 w-full text-left text-red-300 hover:text-red-200 transition-colors p-2 rounded hover:bg-red-800/20">
+                    <User className="w-3 h-3" />
+                    Modifica Personaggi
+                  </button>
+
+                  <div className="border-t border-red-600/20 my-2"></div>
+                  
+                  <div className="text-red-500 font-semibold text-xs mb-1">SISTEMA</div>
+                  <button className="flex items-center gap-2 w-full text-left text-red-300 hover:text-red-200 transition-colors p-2 rounded hover:bg-red-800/20">
+                    <Activity className="w-3 h-3" />
+                    Log Sistema
+                  </button>
+                  <button className="flex items-center gap-2 w-full text-left text-red-300 hover:text-red-200 transition-colors p-2 rounded hover:bg-red-800/20">
+                    <Database className="w-3 h-3" />
+                    Statistiche
+                  </button>
+                  <button className="flex items-center gap-2 w-full text-left text-red-300 hover:text-red-200 transition-colors p-2 rounded hover:bg-red-800/20">
+                    <MessageCircle className="w-3 h-3" />
+                    Annunci
+                  </button>
+                  <button className="flex items-center gap-2 w-full text-left text-red-300 hover:text-red-200 transition-colors p-2 rounded hover:bg-red-800/20">
+                    <AlertTriangle className="w-3 h-3" />
+                    Manutenzione
+                  </button>
+                  <button className="flex items-center gap-2 w-full text-left text-red-300 hover:text-red-200 transition-colors p-2 rounded hover:bg-red-800/20">
+                    <Eye className="w-3 h-3" />
+                    Monitor Chat
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         )}
 
         {/* Menu Giocatore normale */}
