@@ -12,13 +12,24 @@ import { useUser } from '../context/UserContext';
 import { useGameNotifications } from '../components/NotificationSystem';
 import { getLogoutPenaltyTime, setLogoutPenalty, formatTime } from '../utils/gameUtils';
 import api from '../api';
+import useUserData from '../hooks/useUserData';
 
 export default function Land() {
   const navigate = useNavigate();
   const { logout } = useUser();
   const { logoutPenalty, connectionLost, connectionRestored } = useGameNotifications();
 
-  const isAdmin = localStorage.getItem('role') === 'admin';
+  const [isAdmin, setIsAdmin] = useState(localStorage.getItem('role') === 'admin');
+
+  // Recupera dati utente se mancano in localStorage
+  useUserData((role) => setIsAdmin(role === 'admin'));
+
+  useEffect(() => {
+    const checkRole = () => setIsAdmin(localStorage.getItem('role') === 'admin');
+    window.addEventListener('storage', checkRole);
+    checkRole();
+    return () => window.removeEventListener('storage', checkRole);
+  }, []);
   
   // Stati per i modali
   const [showDocumentation, setShowDocumentation] = useState(false);
