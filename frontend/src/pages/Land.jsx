@@ -12,23 +12,67 @@ import { useUser } from '../context/UserContext';
 import { useGameNotifications } from '../components/NotificationSystem';
 import { getLogoutPenaltyTime, setLogoutPenalty, formatTime } from '../utils/gameUtils';
 import api from '../api';
-import useUserData from '../hooks/useUserData';
 
 export default function Land() {
   const navigate = useNavigate();
   const { logout } = useUser();
   const { logoutPenalty, connectionLost, connectionRestored } = useGameNotifications();
 
-  const [isAdmin, setIsAdmin] = useState(localStorage.getItem('role') === 'admin');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [userDataLoaded, setUserDataLoaded] = useState(false);
 
-  // Recupera dati utente se mancano in localStorage
-  useUserData((role) => setIsAdmin(role === 'admin'));
-
+  // Recupera dati utente e verifica ruolo admin
   useEffect(() => {
-    const checkRole = () => setIsAdmin(localStorage.getItem('role') === 'admin');
-    window.addEventListener('storage', checkRole);
-    checkRole();
-    return () => window.removeEventListener('storage', checkRole);
+    const loadUserData = async () => {
+      try {
+        // Prima controlla se il ruolo è già salvato localmente
+        const localRole = localStorage.getItem('role');
+        if (localRole === 'admin') {
+          setIsAdmin(true);
+          setUserDataLoaded(true);
+          console.log('✅ Admin rilevato da localStorage');
+          return;
+        }
+
+        // Se non c'è ruolo locale, recupera dal server
+        const response = await api.get('/auth/me');
+        if (response.data && response.data.role) {
+          const userRole = response.data.role;
+          localStorage.setItem('role', userRole);
+          setIsAdmin(userRole === 'admin');
+          setUserDataLoaded(true);
+          
+          console.log('✅ Dati utente caricati:', {
+            role: userRole,
+            isAdmin: userRole === 'admin'
+          });
+        } else {
+          // Nessun ruolo specifico, utente normale
+          setIsAdmin(false);
+          setUserDataLoaded(true);
+          console.log('ℹ️ Utente normale (non admin)');
+        }
+      } catch (error) {
+        console.error('❌ Errore nel recupero dati utente:', error);
+        // In caso di errore, assume utente normale
+        setIsAdmin(false);
+        setUserDataLoaded(true);
+      }
+    };
+
+    loadUserData();
+  }, []);
+
+  // Monitor cambiamenti nel localStorage per il ruolo
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const role = localStorage.getItem('role');
+      setIsAdmin(role === 'admin');
+      console.log('🔄 Ruolo aggiornato da storage:', role);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
   
   // Stati per i modali
@@ -37,7 +81,7 @@ export default function Land() {
   const [showAllPresent, setShowAllPresent] = useState(false);
   const [showLogoutWarning, setShowLogoutWarning] = useState(false);
   const [showManagement, setShowManagement] = useState(false);
-  const [managementTab, setManagementTab] = useState('map'); // Per specificare quale tab aprire
+  const [managementTab, setManagementTab] = useState('map');
   
   // Stato per il refresh
   const [lastRefresh, setLastRefresh] = useState(Date.now());
@@ -68,8 +112,10 @@ export default function Land() {
       }
     };
 
-    setUserOnlineInLand();
-  }, []);
+    if (userDataLoaded) {
+      setUserOnlineInLand();
+    }
+  }, [userDataLoaded]);
 
   // Auto-refresh ogni minuto
   useEffect(() => {
@@ -130,7 +176,10 @@ export default function Land() {
         // Imposta come offline
         await api.post('/presenze/offline');
         // Effettua logout
-        await api.post('/auth/logout', { type: 'normal' });
+        await api.post('/auth/logout', { 
+          userId: localStorage.getItem('userId'), // Se disponibile
+          type: 'normal' 
+        });
         logout();
       } catch (error) {
         console.error('Errore durante il logout:', error);
@@ -146,7 +195,10 @@ export default function Land() {
   const handleForceLogout = async () => {
     try {
       await api.post('/presenze/offline');
-      await api.post('/auth/logout', { type: 'forced' });
+      await api.post('/auth/logout', { 
+        userId: localStorage.getItem('userId'), // Se disponibile
+        type: 'forced' 
+      });
       setLogoutPenalty(3);
       logout();
     } catch (error) {
@@ -173,11 +225,23 @@ export default function Land() {
     setShowManagement(true);
   };
 
-  const formatTime = (seconds) => {
+  const formatTimeDisplay = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
+
+  // Mostra loading se i dati utente non sono ancora caricati
+  if (!userDataLoaded) {
+    return (
+      <div className="h-screen bg-gray-950 text-cyan-300 font-mono flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-cyan-400 text-xl mb-4">Caricamento EODUM...</div>
+          <div className="text-cyan-600 text-sm">Verifica credenziali e permessi</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen bg-gray-950 text-cyan-300 font-mono overflow-hidden relative">
@@ -193,13 +257,20 @@ export default function Land() {
           <button className="px-3 py-1 bg-gray-800/50 border border-blue-600/50 rounded text-sm text-blue-400">
             Bacheche ON/OFF
           </button>
+          
+          {/* Console Admin - visibile solo se admin */}
           {isAdmin && (
-            <button
-              onClick={() => handleOpenManagement('map')}
-              className="px-3 py-1 bg-red-900/50 border border-red-600/50 rounded text-sm text-red-300 hover:bg-red-800/50 transition-colors"
-            >
-              🔧 Console Admin
-            </button>
+            <>
+              <div className="text-xs text-red-400 bg-red-900/20 px-2 py-1 rounded border border-red-600/30">
+                🛡️ ADMIN
+              </div>
+              <button
+                onClick={() => handleOpenManagement('map')}
+                className="px-3 py-1 bg-red-900/50 border border-red-600/50 rounded text-sm text-red-300 hover:bg-red-800/50 transition-colors"
+              >
+                🔧 Console Admin
+              </button>
+            </>
           )}
           
           {/* Indicatore ultimo refresh */}
@@ -271,7 +342,7 @@ export default function Land() {
         />
       )}
 
-      {showManagement && (
+      {showManagement && isAdmin && (
         <ManagementModal
           onClose={() => setShowManagement(false)}
           position={managementPosition}
@@ -291,7 +362,7 @@ export default function Land() {
           onClose={() => setShowLogoutWarning(false)}
           position={logoutWarningPosition}
           countdown={countdown}
-          formatTime={formatTime}
+          formatTime={formatTimeDisplay}
           zIndex={zIndex + 4}
         />
       )}
